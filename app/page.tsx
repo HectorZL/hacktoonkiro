@@ -37,6 +37,12 @@ export default function Home() {
           <p className="font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
             Plataforma de juegos accesibles
           </p>
+          <a
+            href="/perfiles"
+            className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
+          >
+            Gestionar perfiles de jugadores
+          </a>
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
             Una acción sencilla para comenzar
           </h1>
