@@ -56,6 +56,12 @@ export default function Home() {
             >
               Probar motor de juego
             </a>
+            <a
+              href="/juegos/atrapa-recuerdos"
+              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
+            >
+              Jugar Atrapa los Recuerdos
+            </a>
           </div>
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
             Una acción sencilla para comenzar
