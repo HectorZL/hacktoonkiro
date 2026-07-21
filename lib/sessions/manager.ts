@@ -101,15 +101,31 @@ export async function finishGameSession(session: ActiveGameSession) {
   return { storedSession, destination: "local" as const };
 }
 
+export function getLocalGameSessions(): StoredGameSession[] {
+  if (!hasBrowserStorage()) {
+    return [];
+  }
+
+  try {
+    const storedSessions = window.localStorage.getItem(localSessionsStorageKey);
+    if (!storedSessions) {
+      return [];
+    }
+
+    const parsedSessions = JSON.parse(storedSessions) as StoredGameSession[];
+    return Array.isArray(parsedSessions) ? parsedSessions : [];
+  } catch {
+    return [];
+  }
+}
+
 function saveLocalSession(session: StoredGameSession) {
   if (!hasBrowserStorage()) {
     return;
   }
 
   try {
-    const storedSessions = window.localStorage.getItem(localSessionsStorageKey);
-    const sessions = storedSessions ? (JSON.parse(storedSessions) as StoredGameSession[]) : [];
-    const nextSessions = Array.isArray(sessions) ? [...sessions, session].slice(-100) : [session];
+    const nextSessions = [...getLocalGameSessions(), session].slice(-100);
     window.localStorage.setItem(localSessionsStorageKey, JSON.stringify(nextSessions));
   } catch {
     // El registro local no debe bloquear ni interrumpir la actividad.

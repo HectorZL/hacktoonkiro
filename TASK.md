@@ -405,9 +405,11 @@ type GameInput =
 
 **Demo:** El jardín registra una sesión de un jugador con su duración, entrada y nivel de asistencia.
 
-### Task 11: Crear el panel de cuidador
+### Task 11: Crear el panel de cuidador — base implementada
 
 **Objetivo:** Mostrar información simple y no clínica.
+
+**Estado:** La ruta `/cuidador` muestra actividad reciente, tiempo de juego, juegos realizados, resumen por jugador y sesiones por período de 7 o 30 días. Incluye gráfica visual con tabla alternativa para lectores de pantalla, funciona con el fallback local y consulta las sesiones del cuidador autenticado cuando Supabase está configurado.
 
 **Implementación:**
 
@@ -437,9 +439,9 @@ type GameInput =
 
 **Demo:** El cuidador observa la actividad de María durante la última semana.
 
-### Task 12: Añadir alertas no clínicas
+### Task 12: Añadir alertas no clínicas — saltado por decisión de alcance
 
-**Objetivo:** Informar sobre actividad sin emitir conclusiones médicas.
+**Estado:** Esta tarea se salta explícitamente en este ciclo. No se implementan alertas de actividad ni notificaciones; el panel solo muestra los datos registrados cuando el cuidador los consulta.
 
 **Implementación:**
 

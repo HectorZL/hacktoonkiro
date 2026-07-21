@@ -45,6 +45,12 @@ export default function Home() {
               Gestionar perfiles de jugadores
             </a>
             <a
+              href="/cuidador"
+              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
+            >
+              Ver actividad del cuidador
+            </a>
+            <a
               href="/entrada"
               className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
             >

@@ -37,6 +37,7 @@ La base de accesibilidad, los perfiles, la entrada unificada y el motor de asist
 - El Jardín Virtual con escenas lentas, cuidado por una acción y sin derrota.
 - Alertas sonoras opcionales en el jardín, con silencio explícito y equivalentes visuales.
 - Registro mínimo de sesiones para juego, jugador, duración, entrada y asistencia.
+- Panel del cuidador en `/cuidador` con actividad reciente, tiempo de juego, juegos realizados, resumen por jugador y tabla accesible.
 - Fallback local cuando Supabase no está configurado, sin datos clínicos, audio ni video.
 - Protección contra repeticiones de una pulsación larga.
 - Feedback visual con `aria-live`.
@@ -72,8 +73,8 @@ El desarrollo se realizará paso a paso, manteniendo el alcance controlado:
 8. **El Jardín Virtual** — completado: experiencia relajante sin puntuación ni derrota.
 9. **Audio opcional** — música, efectos y narración con equivalentes visuales.
 10. **Sesiones y datos mínimos** — base implementada: registro al finalizar la actividad con fallback local y RLS preparado para Supabase.
-11. **Panel de cuidador** — actividad reciente, tiempo de juego y juegos realizados.
-12. **Alertas no clínicas** — avisos de actividad sin interpretaciones médicas.
+11. **Panel de cuidador** — completado: actividad reciente, tiempo de juego, juegos realizados, resumen por jugador, períodos de 7/30 días y tablas accesibles.
+12. **Alertas no clínicas** — saltado por decisión de alcance; no se implementa en este ciclo.
 13. **Accesibilidad multiplataforma** — base implementada: responsive, skip link, foco visible, gating de `Space`, zoom, preferencias de movimiento/contraste y protocolo reproducible; faltan pruebas reales en dispositivos.
 14. **Validación con usuarios y revisión legal** — protocolo documentado con métricas, privacidad y fuentes oficiales; faltan pruebas con personas de 70–80 años y revisión jurídica profesional.
 15. **Optimización para planes gratuitos** — Vercel Free, Supabase Free y procesamiento local de cámara.

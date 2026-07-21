@@ -306,9 +306,17 @@ export default function ProfilesPage() {
     <main className="min-h-screen px-5 py-8 sm:px-8 sm:py-12">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <header className="flex flex-col gap-3">
-          <Link className="w-fit font-semibold text-[var(--color-primary)] underline" href="/">
-            ← Volver al inicio
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/cuidador"
+              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
+            >
+              Ver actividad del cuidador
+            </Link>
+            <Link className="w-fit font-semibold text-[var(--color-primary)] underline" href="/">
+              ← Volver al inicio
+            </Link>
+          </div>
           <p className="font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
             Task 2 · Perfiles compartidos
           </p>
