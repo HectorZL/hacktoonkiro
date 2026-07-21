@@ -15,8 +15,10 @@ Estados usados en este documento:
 
 - Implementado: layout responsive, áreas táctiles grandes, foco visible, skip link global, `prefers-reduced-motion`, `forced-colors`, `prefers-contrast`, `aria-live` y equivalentes visuales para audio.
 - Implementado: `Space` solo despacha la acción cuando la actividad está activa; no se exige una pulsación larga y se mantiene cooldown contra rebotes.
-- Ejecutado el 20 de julio de 2026 en Windows/PowerShell: `npm run lint`, `npm run build`, `git diff --check` y smoke HTTP de las siete rutas devolvieron resultado satisfactorio.
-- Pendiente: pruebas en dispositivos reales, auditoría automatizada con axe/Lighthouse, revisión manual con lector de pantalla y pruebas con personas adultas mayores.
+- Ejecutado en Windows/PowerShell: `npm run lint`, `npm run build`, `git diff --check` y smoke HTTP de las ocho rutas (`/`, `/entrada`, `/perfiles`, `/cuidador`, `/motor` y las tres actividades) devolvieron resultado satisfactorio.
+- Ejecutado el 20 de julio de 2026 con `@axe-core/cli@4.12.1`, Chrome 150 y ChromeDriver compatible: las ocho rutas tuvieron `0` violaciones axe. Hubo resultados `incomplete` de contraste en símbolos no textuales o fondos degradados; requieren revisión visual y no se contaron como violaciones confirmadas.
+- Ejecutado el 20 de julio de 2026 con `lighthouse@13.4.1`: las ocho rutas obtuvieron 100/100 en accesibilidad en preset desktop y en la configuración móvil predeterminada, sin auditorías fallidas con puntuación aplicable.
+- Pendiente: pruebas en dispositivos reales, revisión manual con lector de pantalla y pruebas con personas adultas mayores.
 - Pendiente: revisión jurídica por una persona profesional en normativa ecuatoriana.
 
 ## Reproducción técnica
@@ -33,7 +35,7 @@ npm run start -- --port 3012
 Con el servidor de producción iniciado, comprobar las rutas principales:
 
 ```powershell
-$routes = @('/', '/entrada', '/perfiles', '/motor', '/juegos/carrera-sacos', '/juegos/trompo', '/juegos/jardin-virtual')
+$routes = @('/', '/entrada', '/perfiles', '/cuidador', '/motor', '/juegos/carrera-sacos', '/juegos/trompo', '/juegos/jardin-virtual')
 foreach ($route in $routes) {
   $response = Invoke-WebRequest -Uri ("http://localhost:3012" + $route) -UseBasicParsing
   if ($response.StatusCode -ne 200) { throw "Ruta fallida: $route" }
@@ -84,11 +86,11 @@ Severidades sugeridas: **bloqueante** (impide jugar), **alta** (impide una modal
 - [x] `npm run lint` sin errores (20 de julio de 2026, Windows/PowerShell).
 - [x] `npm run build` sin errores (20 de julio de 2026, Next.js 16.2.10).
 - [x] `git diff --check` sin espacios o conflictos accidentales.
-- [x] Smoke HTTP de las siete rutas indicadas; todas respondieron `HTTP 200`.
-- [ ] Auditoría axe o equivalente en inicio y en cada juego.
-- [ ] Lighthouse de accesibilidad en las rutas representativas.
+- [x] Smoke HTTP de las ocho rutas indicadas; todas respondieron `HTTP 200`.
+- [x] Auditoría axe con `@axe-core/cli@4.12.1`: ocho rutas, `0` violaciones; los resultados `incomplete` de contraste quedaron identificados para revisión visual.
+- [x] Lighthouse `13.4.1` de accesibilidad: ocho rutas, 100/100 en preset desktop y en la configuración móvil predeterminada; sin auditorías fallidas con puntuación aplicable.
 
-No hay una suite axe/E2E/Lighthouse configurada actualmente. Hasta añadirla o ejecutarla externamente, esos puntos permanecen pendientes.
+No hay una suite axe/E2E/Lighthouse integrada al repositorio ni ejecución automática en CI. Estos resultados se obtuvieron externamente con las versiones indicadas sobre el build de producción; deben repetirse al modificar la interfaz.
 
 ### Manual
 

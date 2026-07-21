@@ -443,33 +443,11 @@ type GameInput =
 
 **Estado:** Esta tarea se salta explícitamente en este ciclo. No se implementan alertas de actividad ni notificaciones; el panel solo muestra los datos registrados cuando el cuidador los consulta.
 
-**Implementación:**
-
-- Alertas configurables:
-  - “No se registró actividad durante X días”.
-  - “La actividad semanal disminuyó”.
-- No crear alertas de diagnóstico ni de empeoramiento cognitivo.
-- Mostrar siempre:
-  - fecha;
-  - dato observado;
-  - aviso de que no es una evaluación médica.
-- Preferir evaluación bajo demanda o cron periódico para reducir consumo.
-- Usar Realtime solo para notificaciones importantes.
-
-**Tests:**
-
-- Se genera alerta tras el período configurado.
-- El cuidador puede marcarla como leída.
-- No se genera una alerta duplicada continuamente.
-- El texto no contiene afirmaciones clínicas.
-
-**Demo:** El cuidador recibe “No se registró actividad durante 3 días” sin ninguna interpretación médica.
-
-### Task 13: Accesibilidad móvil, teclado y navegador — base implementada; pruebas reales pendientes
+### Task 13: Accesibilidad móvil, teclado y navegador — base y auditoría automatizada completadas; pruebas reales pendientes
 
 **Objetivo:** Asegurar que la experiencia funcione en computadora, móvil y tablet.
 
-**Estado:** La base responsive, el skip link global, el foco visible, el gating de `Space` por estado activo, las preferencias de movimiento/contraste y la checklist reproducible están implementados. La validación en dispositivos, zoom, orientación, lector de pantalla y herramientas automatizadas todavía debe ejecutarse y registrarse.
+**Estado:** La base responsive, el skip link global, el foco visible, el gating de `Space`, las preferencias de movimiento/contraste y la checklist reproducible están implementados. axe 4.12.1 no encontró violaciones en las ocho rutas y Lighthouse 13.4.1 obtuvo 100/100 de accesibilidad en preset desktop y configuración móvil predeterminada. Faltan pruebas con dispositivos reales, zoom, orientación, lector de pantalla y validación manual.
 
 **Implementación:**
 

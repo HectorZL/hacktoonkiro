@@ -57,7 +57,7 @@ La base de accesibilidad, los perfiles, la entrada unificada y el motor de asist
 - Task 13 base implementada: skip link global, gating de `Space` por estado activo, soporte responsive, foco visible y preferencias de movimiento/contraste.
 - Task 14: protocolo documentado, con matriz técnica, pruebas con personas mayores, privacidad y fuentes oficiales ecuatorianas en [`docs/accessibility-validation.md`](./docs/accessibility-validation.md).
 
-Las validaciones automatizadas de este bloque pasaron el 20 de julio de 2026 en Windows/PowerShell: `git diff --check`, `npm run lint`, `npm run build` y smoke HTTP de las siete rutas. La auditoría axe/Lighthouse, las pruebas con dispositivos reales, las pruebas con personas de 70–80 años y la revisión jurídica profesional siguen pendientes; no se afirma conformidad total ni legal.
+Las validaciones automatizadas de este bloque pasaron el 20 de julio de 2026 en Windows/PowerShell: `git diff --check`, `npm run lint`, `npm run build` y smoke HTTP de ocho rutas. axe `4.12.1` no encontró violaciones en las ocho rutas y Lighthouse `13.4.1` obtuvo 100/100 de accesibilidad en desktop y configuración móvil predeterminada. Las pruebas con dispositivos reales, la revisión manual con lector de pantalla, las pruebas con personas de 70–80 años y la revisión jurídica profesional siguen pendientes; no se afirma conformidad total ni legal.
 
 ## Plan de implementación
 
