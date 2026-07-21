@@ -21,7 +21,7 @@ La cámara será opcional. Cuando se active, MediaPipe se ejecutará en el clien
 
 ## Qué estamos haciendo ahora
 
-El proyecto se encuentra en la primera etapa: **Task 1 — proyecto base y sistema visual accesible**.
+La base de accesibilidad, los perfiles, la entrada unificada y el motor de asistencia ya están implementados. Las dos primeras actividades del MVP disponibles son **Carrera de sacos** y **Lanzamiento del trompo**.
 
 ### Ya está implementado
 
@@ -29,7 +29,11 @@ El proyecto se encuentra en la primera etapa: **Task 1 — proyecto base y siste
 - Tailwind CSS configurado mediante PostCSS.
 - ESLint y configuración de compilación.
 - Página inicial accesible en español.
-- Botón grande compatible con toque, click y barra espaciadora.
+- Perfiles locales de demostración y preparación para Supabase con RLS.
+- Entrada unificada por barra espaciadora, toque y mano simulada.
+- Motor de estados con pausa, reanudación, reinicio, asistencia y práctica sin penalización.
+- Carrera de sacos con avance automático, salto por una acción y ventana amplia.
+- Lanzamiento del trompo con marca móvil, lanzamiento por una acción y ventana amplia.
 - Protección contra repeticiones de una pulsación larga.
 - Feedback visual con `aria-live`.
 - Foco visible para teclado.
@@ -43,7 +47,7 @@ El proyecto se encuentra en la primera etapa: **Task 1 — proyecto base y siste
 - `npm install`
 - `npm run lint`
 - `npm run build`
-- Smoke test HTTP de la página inicial.
+- Smoke test HTTP de la página inicial y de las dos actividades.
 - Verificación de que `node_modules` y `.next` no se incluyan en Git.
 
 ## Plan de implementación
@@ -54,8 +58,8 @@ El desarrollo se realizará paso a paso, manteniendo el alcance controlado:
 2. **Perfiles y Supabase** — autenticación del cuidador, jugadores y selección en dispositivos compartidos.
 3. **Entrada unificada** — teclado, toque y mano como eventos lógicos independientes.
 4. **Motor de acciones y asistencia** — estados, pausas, ritmo configurable y errores sin penalización.
-5. **Atrapa los Recuerdos** — juego de captura automática con una sola acción.
-6. **Clasificador del Hogar** — clasificación sin arrastrar.
+5. **Carrera de sacos** — avance automático, salto por una acción y ventana amplia.
+6. **Lanzamiento del trompo** — lanzamiento por una acción con ventana amplia y práctica sin penalización.
 7. **Director de Orquesta** — secuencias musicales con feedback visual y sonoro opcional.
 8. **El Jardín Virtual** — experiencia relajante sin puntuación ni derrota.
 9. **Audio opcional** — música, efectos y narración con equivalentes visuales.

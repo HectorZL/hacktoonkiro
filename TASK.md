@@ -259,57 +259,51 @@ type GameInput =
 
 **Demo:** Una pantalla presenta una opción, espera la pulsación y muestra una confirmación grande.
 
-### Task 5: Implementar “Atrapa los Recuerdos”
+### Task 5: Implementar “Carrera de sacos”
 
-**Objetivo:** Crear el primer juego completo usando una sola pulsación o toque.
-
-**Implementación:**
-
-- En modo teclado/touch:
-  - la canasta se mueve automáticamente de forma lenta;
-  - espacio/toque activa una captura o cambia el momento de acción;
-  - la ventana de captura será amplia;
-  - no habrá game over inmediato.
-- En modo mano:
-  - la canasta puede seguir la posición horizontal de la mano;
-  - el modo mano no será obligatorio.
-- Usar objetos grandes y pocos elementos simultáneos.
-- Proporcionar opción de ritmo lento y práctica.
-
-**Tests:**
-
-- Se completa una ronda solo con espacio.
-- Se completa una ronda solo con toque.
-- El juego continúa tras un error.
-- La velocidad cambia según asistencia.
-- La colisión admite tolerancia amplia.
-
-**Demo:** El jugador atrapa objetos sin usar flechas ni movimientos rápidos.
-
-### Task 6: Implementar “Clasificador del Hogar”
-
-**Objetivo:** Crear un juego cognitivo de clasificación que no requiera arrastrar.
+**Objetivo:** Crear una carrera lúdica que se controle con una sola pulsación o toque, sin exigir movimientos rápidos.
 
 **Implementación:**
 
-- Mostrar un objeto grande.
-- Presentar una categoría o destino por vez.
-- El sistema puede recorrer lentamente las opciones.
-- Espacio/toque confirma la opción actualmente destacada.
-- El usuario puede:
-  - confirmar cuando aparece la categoría correcta;
-  - o avanzar lentamente entre opciones, según configuración.
-- El error no elimina progreso.
-- En modo mano, permitir cursor magnético como alternativa.
+- El personaje avanza automáticamente a ritmo configurable.
+- Espacio/toque activa un salto dentro de una ventana amplia.
+- Los obstáculos son grandes y se muestran con anticipación.
+- Un salto fuera de tiempo sirve como práctica y no elimina al jugador.
+- En modo mano, una acción simulada activa el mismo salto.
+- Incluir pausa, reanudación, reinicio y feedback visual.
 
 **Tests:**
 
-- El juego se completa sin arrastrar.
-- El usuario puede corregir una selección.
-- Las categorías se identifican con texto, icono y forma.
-- No se usa color como única diferencia.
+- La actividad se puede completar solo con espacio.
+- La actividad se puede completar solo con toque.
+- El juego continúa tras un salto fuera de la ventana.
+- La velocidad y la ventana cambian según asistencia.
+- La entrada tiene cooldown contra pulsaciones accidentales.
 
-**Demo:** El jugador clasifica ropa, platos y libros usando solo espacio.
+**Demo:** El personaje recorre la pista y supera obstáculos con una pulsación amplia.
+
+### Task 6: Implementar “Lanzamiento del trompo”
+
+**Objetivo:** Crear una actividad de lanzamiento controlada con una sola pulsación o toque y una ventana de acción amplia.
+
+**Implementación:**
+
+- Mostrar una marca que se mueve lentamente entre los extremos de una pista.
+- Espacio/toque lanza el trompo cuando la marca está dentro de la ventana verde.
+- Un lanzamiento fuera de la ventana inicia una ronda de práctica sin derrota.
+- La duración del giro y la amplitud de la ventana se ajustan por asistencia.
+- En modo mano, una acción simulada activa el mismo lanzamiento.
+- Incluir pausa, reanudación, reinicio y feedback visual.
+
+**Tests:**
+
+- La actividad se puede completar solo con espacio.
+- La actividad se puede completar solo con toque.
+- Un lanzamiento fuera de la ventana no finaliza la actividad.
+- Las ventanas se identifican con texto, forma y posición, no solo con color.
+- La entrada tiene cooldown contra lanzamientos accidentales.
+
+**Demo:** El jugador espera la ventana verde y lanza el trompo con una pulsación.
 
 ### Task 7: Implementar “Director de Orquesta”
 
