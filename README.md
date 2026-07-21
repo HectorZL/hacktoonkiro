@@ -53,6 +53,10 @@ La base de accesibilidad, los perfiles, la entrada unificada y el motor de asist
 - `npm run build`
 - Smoke test HTTP de la página inicial y de las tres actividades.
 - Verificación de que `node_modules` y `.next` no se incluyan en Git.
+- Task 13 base implementada: skip link global, gating de `Space` por estado activo, soporte responsive, foco visible y preferencias de movimiento/contraste.
+- Task 14: protocolo documentado, con matriz técnica, pruebas con personas mayores, privacidad y fuentes oficiales ecuatorianas en [`docs/accessibility-validation.md`](./docs/accessibility-validation.md).
+
+Las validaciones automatizadas de este bloque pasaron el 20 de julio de 2026 en Windows/PowerShell: `git diff --check`, `npm run lint`, `npm run build` y smoke HTTP de las siete rutas. La auditoría axe/Lighthouse, las pruebas con dispositivos reales, las pruebas con personas de 70–80 años y la revisión jurídica profesional siguen pendientes; no se afirma conformidad total ni legal.
 
 ## Plan de implementación
 
@@ -70,8 +74,8 @@ El desarrollo se realizará paso a paso, manteniendo el alcance controlado:
 10. **Sesiones y datos mínimos** — base implementada: registro al finalizar la actividad con fallback local y RLS preparado para Supabase.
 11. **Panel de cuidador** — actividad reciente, tiempo de juego y juegos realizados.
 12. **Alertas no clínicas** — avisos de actividad sin interpretaciones médicas.
-13. **Accesibilidad multiplataforma** — escritorio, móvil, tablet, zoom y teclado.
-14. **Validación con usuarios y revisión legal** — pruebas con personas de 70–80 años y revisión de normativa ecuatoriana.
+13. **Accesibilidad multiplataforma** — base implementada: responsive, skip link, foco visible, gating de `Space`, zoom, preferencias de movimiento/contraste y protocolo reproducible; faltan pruebas reales en dispositivos.
+14. **Validación con usuarios y revisión legal** — protocolo documentado con métricas, privacidad y fuentes oficiales; faltan pruebas con personas de 70–80 años y revisión jurídica profesional.
 15. **Optimización para planes gratuitos** — Vercel Free, Supabase Free y procesamiento local de cámara.
 
 El desglose detallado de cada etapa está en [`TASK.md`](./TASK.md).

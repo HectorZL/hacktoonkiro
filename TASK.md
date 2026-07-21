@@ -463,9 +463,11 @@ type GameInput =
 
 **Demo:** El cuidador recibe “No se registró actividad durante 3 días” sin ninguna interpretación médica.
 
-### Task 13: Accesibilidad móvil, teclado y navegador
+### Task 13: Accesibilidad móvil, teclado y navegador — base implementada; pruebas reales pendientes
 
 **Objetivo:** Asegurar que la experiencia funcione en computadora, móvil y tablet.
+
+**Estado:** La base responsive, el skip link global, el foco visible, el gating de `Space` por estado activo, las preferencias de movimiento/contraste y la checklist reproducible están implementados. La validación en dispositivos, zoom, orientación, lector de pantalla y herramientas automatizadas todavía debe ejecutarse y registrarse.
 
 **Implementación:**
 
@@ -489,9 +491,11 @@ type GameInput =
 
 **Demo:** El mismo juego puede completarse con espacio en computadora y toque en celular.
 
-### Task 14: Validación con usuarios y revisión legal
+### Task 14: Validación con usuarios y revisión legal — protocolo documentado; validación pendiente
 
 **Objetivo:** Validar la accesibilidad real y revisar obligaciones ecuatorianas antes de presentar el sistema como producto.
+
+**Estado:** El protocolo de [`docs/accessibility-validation.md`](./docs/accessibility-validation.md) define participantes, guion, métricas, privacidad, fuentes oficiales y pendientes legales. No se han realizado todavía pruebas con personas de 70–80 años ni una revisión jurídica profesional, por lo que no se afirma conformidad legal o accesibilidad total.
 
 **Implementación:**
 
