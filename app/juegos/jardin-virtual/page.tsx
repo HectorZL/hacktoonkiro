@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AudioManager } from "@/lib/audio/manager";
+import { finishGameSession, getActivePlayer, startGameSession, type ActiveGameSession } from "@/lib/sessions/manager";
 import { InputController } from "@/lib/input/controller";
 import type { GameInput, InputMode } from "@/lib/input/types";
 
@@ -85,6 +86,7 @@ export default function JardinVirtualPage() {
   const controllerRef = useRef<InputController | null>(null);
   const audioRef = useRef<AudioManager | null>(null);
   const previousSnapshotRef = useRef<GardenSnapshot | null>(null);
+  const sessionRef = useRef<ActiveGameSession | null>(null);
 
   useEffect(() => {
     const manager = new AudioManager();
@@ -92,6 +94,16 @@ export default function JardinVirtualPage() {
     return () => {
       manager.dispose();
       audioRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      const activeSession = sessionRef.current;
+      sessionRef.current = null;
+      if (activeSession) {
+        void finishGameSession(activeSession);
+      }
     };
   }, []);
 
@@ -116,12 +128,25 @@ export default function JardinVirtualPage() {
   }, [snapshot]);
 
   const startGarden = useCallback(() => {
+    const previousSession = sessionRef.current;
+    if (previousSession) {
+      void finishGameSession(previousSession);
+    }
+
+    const activePlayer = getActivePlayer();
+    sessionRef.current = startGameSession({
+      player: activePlayer,
+      gameKey: "jardin-virtual",
+      inputMode: mode,
+      assistanceLevel: assistance,
+    });
+    setInputFeedback(`Sesión de ${activePlayer.name} iniciada. Se guardarán juego, tiempo, entrada y asistencia.`);
     setSnapshot({
       ...createInitialSnapshot(),
       state: "active",
       message: scenes[0].activeMessage,
     });
-  }, []);
+  }, [assistance, mode]);
 
   const togglePause = useCallback(() => {
     setSnapshot((current) => {
@@ -352,7 +377,7 @@ export default function JardinVirtualPage() {
           </div>
         </section>
 
-        <footer className="border-t border-[var(--color-border)] pt-5 text-base text-[var(--color-text-muted)]"><p>El jardín es una experiencia de entretenimiento accesible. El sonido es opcional y no realiza evaluación médica ni clínica.</p></footer>
+        <footer className="border-t border-[var(--color-border)] pt-5 text-base text-[var(--color-text-muted)]"><p>El jardín es una experiencia de entretenimiento accesible. La sesión guarda solo jugador, juego, duración, entrada y asistencia; no registra datos clínicos, audio ni video.</p></footer>
       </div>
     </main>
   );

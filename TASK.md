@@ -381,40 +381,29 @@ type GameInput =
 
 **Demo:** Cuidar el jardín con alertas activadas y silenciadas sin perder información.
 
-### Task 10: Registrar sesiones y datos mínimos
+### Task 10: Registrar sesiones y datos mínimos — base implementada
 
 **Objetivo:** Guardar únicamente los datos necesarios para actividad y bienestar.
 
 **Implementación:**
 
-- Crear `game_sessions` con:
-  - jugador;
-  - juego;
-  - inicio;
-  - fin;
-  - duración;
-  - modo de entrada;
-  - nivel de asistencia.
-- Crear agregados mínimos para:
-  - sesiones por día;
-  - juegos utilizados;
-  - minutos jugados.
-- No guardar:
-  - video;
-  - imágenes de cámara;
-  - precisión clínica;
-  - diagnóstico;
-  - datos biométricos derivados.
-- Enviar datos solo al iniciar/finalizar sesión para reducir consumo de Supabase.
+- Crear `game_sessions` con jugador, juego, inicio, fin, duración, modo de entrada y nivel de asistencia.
+- Registrar el jardín al entrar y finalizar la sesión al reiniciar o salir de la página.
+- Enviar datos a Supabase únicamente cuando hay credenciales y un jugador Supabase válido.
+- Usar `hacktoonkiro:sessions` como fallback local, limitado a las últimas 100 sesiones.
+- Persistir el jugador seleccionado bajo `hacktoonkiro:active-player` para asociarlo al juego.
+- Aplicar RLS para que cada cuidador solo lea y cree sesiones de sus jugadores.
+- No guardar video, imágenes de cámara, audio, precisión clínica, diagnósticos ni datos biométricos derivados.
+- Enviar una sola fila al finalizar la sesión, no eventos por frame.
 
 **Tests:**
 
-- Una sesión se registra correctamente.
-- La duración se calcula bien.
-- Una sesión cancelada no genera datos corruptos.
+- Una sesión se inicia y se finaliza en el jardín.
+- La duración se calcula en segundos sin valores negativos.
+- La salida o reinicio conserva el registro local aunque Supabase no esté configurado.
 - RLS limita el acceso al cuidador correspondiente.
 
-**Demo:** El cuidador ve que un jugador realizó una sesión de cinco minutos.
+**Demo:** El jardín registra una sesión de un jugador con su duración, entrada y nivel de asistencia.
 
 ### Task 11: Crear el panel de cuidador
 

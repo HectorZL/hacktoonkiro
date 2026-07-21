@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { setActivePlayer } from "@/lib/sessions/manager";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type AvatarKey = "sun" | "flower" | "leaf" | "star";
@@ -65,6 +66,10 @@ export default function ProfilesPage() {
     () => players.find((player) => player.id === selectedPlayerId) ?? null,
     [players, selectedPlayerId],
   );
+
+  useEffect(() => {
+    setActivePlayer(selectedPlayer ? { id: selectedPlayer.id, name: selectedPlayer.name } : null);
+  }, [selectedPlayer]);
 
   const loadSupabasePlayers = useCallback(async (caregiverId: string) => {
     const supabase = createClient();

@@ -36,6 +36,8 @@ La base de accesibilidad, los perfiles, la entrada unificada y el motor de asist
 - Lanzamiento del trompo con marca móvil, lanzamiento por una acción y ventana amplia.
 - El Jardín Virtual con escenas lentas, cuidado por una acción y sin derrota.
 - Alertas sonoras opcionales en el jardín, con silencio explícito y equivalentes visuales.
+- Registro mínimo de sesiones para juego, jugador, duración, entrada y asistencia.
+- Fallback local cuando Supabase no está configurado, sin datos clínicos, audio ni video.
 - Protección contra repeticiones de una pulsación larga.
 - Feedback visual con `aria-live`.
 - Foco visible para teclado.
@@ -65,7 +67,7 @@ El desarrollo se realizará paso a paso, manteniendo el alcance controlado:
 7. **Director de Orquesta** — secuencias musicales con feedback visual y sonoro opcional.
 8. **El Jardín Virtual** — completado: experiencia relajante sin puntuación ni derrota.
 9. **Audio opcional** — música, efectos y narración con equivalentes visuales.
-10. **Sesiones y datos mínimos** — registro al inicio y final de cada sesión.
+10. **Sesiones y datos mínimos** — base implementada: registro al finalizar la actividad con fallback local y RLS preparado para Supabase.
 11. **Panel de cuidador** — actividad reciente, tiempo de juego y juegos realizados.
 12. **Alertas no clínicas** — avisos de actividad sin interpretaciones médicas.
 13. **Accesibilidad multiplataforma** — escritorio, móvil, tablet, zoom y teclado.
