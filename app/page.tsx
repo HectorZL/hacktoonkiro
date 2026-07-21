@@ -68,6 +68,12 @@ export default function Home() {
             >
               Jugar Lanzamiento del trompo
             </a>
+            <a
+              href="/juegos/jardin-virtual"
+              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
+            >
+              Visitar El Jardín Virtual
+            </a>
           </div>
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
             Una acción sencilla para comenzar

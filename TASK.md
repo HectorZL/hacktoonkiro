@@ -334,31 +334,29 @@ type GameInput =
 
 **Demo:** El jugador sigue una secuencia musical usando solo la barra espaciadora.
 
-### Task 8: Implementar “El Jardín Virtual”
+### Task 8: Implementar “El Jardín Virtual” — completado
 
 **Objetivo:** Crear una experiencia relajante sin puntuación ni exigencia de precisión.
 
 **Implementación:**
 
-- Mostrar una planta o mascota por vez.
-- La acción automática presenta el punto de interés.
-- Espacio/toque interactúa:
-  - regar;
-  - acariciar;
-  - hacer crecer una planta.
-- No habrá límite de tiempo ni derrota.
-- La mano será una alternativa para desplazarse por el jardín.
-- Las animaciones serán lentas, pausables y no esenciales para entender el estado.
+- Mostrar una planta, flores o mascota por vez en una escena grande.
+- La escena cambia automáticamente a un ritmo lento y configurable.
+- Espacio/toque/una mano simulada interactúa con el elemento actual para regar, cuidar o acompañar.
+- El cuidado hace crecer la escena con feedback visible y repetible.
+- No hay límite de tiempo, derrota ni penalización.
+- Incluye pausa, reanudación, reinicio y repetición de instrucciones.
+- Las animaciones son decorativas y el estado se entiende también mediante texto, progreso e iconos.
 
 **Tests:**
 
 - El jardín funciona sin audio.
-- Se puede regar con una pulsación.
+- Se puede cuidar la escena con una pulsación o toque.
 - Las acciones se pueden repetir.
-- Pausar detiene las animaciones.
+- Pausar detiene el cambio automático de escena.
 - No hay penalizaciones.
 
-**Demo:** El jugador cuida una planta usando solo espacio o un toque.
+**Demo:** El jugador cuida una planta, flores o mascota usando solo espacio o un toque.
 
 ### Task 9: Añadir audio opcional y equivalencias visuales
 

@@ -21,7 +21,7 @@ La cámara será opcional. Cuando se active, MediaPipe se ejecutará en el clien
 
 ## Qué estamos haciendo ahora
 
-La base de accesibilidad, los perfiles, la entrada unificada y el motor de asistencia ya están implementados. Las dos primeras actividades del MVP disponibles son **Carrera de sacos** y **Lanzamiento del trompo**.
+La base de accesibilidad, los perfiles, la entrada unificada y el motor de asistencia ya están implementados. Hay tres actividades disponibles: **Carrera de sacos**, **Lanzamiento del trompo** y **El Jardín Virtual**.
 
 ### Ya está implementado
 
@@ -34,6 +34,7 @@ La base de accesibilidad, los perfiles, la entrada unificada y el motor de asist
 - Motor de estados con pausa, reanudación, reinicio, asistencia y práctica sin penalización.
 - Carrera de sacos con avance automático, salto por una acción y ventana amplia.
 - Lanzamiento del trompo con marca móvil, lanzamiento por una acción y ventana amplia.
+- El Jardín Virtual con escenas lentas, cuidado por una acción y sin derrota.
 - Protección contra repeticiones de una pulsación larga.
 - Feedback visual con `aria-live`.
 - Foco visible para teclado.
@@ -47,7 +48,7 @@ La base de accesibilidad, los perfiles, la entrada unificada y el motor de asist
 - `npm install`
 - `npm run lint`
 - `npm run build`
-- Smoke test HTTP de la página inicial y de las dos actividades.
+- Smoke test HTTP de la página inicial y de las tres actividades.
 - Verificación de que `node_modules` y `.next` no se incluyan en Git.
 
 ## Plan de implementación
@@ -61,7 +62,7 @@ El desarrollo se realizará paso a paso, manteniendo el alcance controlado:
 5. **Carrera de sacos** — avance automático, salto por una acción y ventana amplia.
 6. **Lanzamiento del trompo** — lanzamiento por una acción con ventana amplia y práctica sin penalización.
 7. **Director de Orquesta** — secuencias musicales con feedback visual y sonoro opcional.
-8. **El Jardín Virtual** — experiencia relajante sin puntuación ni derrota.
+8. **El Jardín Virtual** — completado: experiencia relajante sin puntuación ni derrota.
 9. **Audio opcional** — música, efectos y narración con equivalentes visuales.
 10. **Sesiones y datos mínimos** — registro al inicio y final de cada sesión.
 11. **Panel de cuidador** — actividad reciente, tiempo de juego y juegos realizados.
