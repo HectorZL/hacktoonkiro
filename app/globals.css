@@ -11,6 +11,8 @@
   --color-primary-contrast: #ffffff;
   --color-success: #166534;
   --color-success-surface: #dcfce7;
+  --color-warning: #92400e;
+  --color-warning-surface: #fef3c7;
   --color-border: #b8c2cc;
   --color-focus: #b45309;
   --radius-card: 1.25rem;
@@ -22,18 +24,23 @@
 }
 
 html {
+  min-width: 320px;
   background: var(--color-background);
   color-scheme: light;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   min-width: 320px;
   margin: 0;
+  overflow-x: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
   background: var(--color-background);
   color: var(--color-text);
   font-family: Arial, Helvetica, sans-serif;
   font-size: 1.125rem;
   line-height: 1.6;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -44,9 +51,31 @@ textarea {
   font: inherit;
 }
 
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
 button {
   min-height: 3rem;
   cursor: pointer;
+  touch-action: manipulation;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  text-underline-offset: 0.18em;
+}
+
+:where(img, svg, video, canvas) {
+  max-width: 100%;
+}
+
+:where(fieldset) {
+  min-width: 0;
 }
 
 button:focus-visible,
@@ -63,6 +92,24 @@ textarea:focus-visible {
   color: var(--color-text);
 }
 
+@media (pointer: coarse) {
+  button {
+    min-height: 3.25rem;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-border: #52606d;
+    --shadow-card: 0 0 0 2px var(--color-border);
+  }
+
+  button,
+  a {
+    text-decoration-thickness: 0.14em;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -75,8 +122,16 @@ textarea:focus-visible {
 }
 
 @media (forced-colors: active) {
+  button,
+  a {
+    forced-color-adjust: auto;
+  }
+
   button:focus-visible,
-  a:focus-visible {
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
     outline: 3px solid CanvasText;
   }
 }
