@@ -69,6 +69,7 @@ export default function GameEngineDemoPage() {
       onInput: handleInput,
       onRejected: handleRejectedInput,
       cooldownMs: 350,
+      isActionEnabled: () => snapshot.state === "waiting-for-action",
     });
     controllerRef.current = controller;
     controller.start();
@@ -77,7 +78,7 @@ export default function GameEngineDemoPage() {
       controller.stop();
       controllerRef.current = null;
     };
-  }, [handleInput, handleRejectedInput, mode]);
+  }, [handleInput, handleRejectedInput, mode, snapshot.state]);
 
   function startOrRestart() {
     engineRef.current?.start();

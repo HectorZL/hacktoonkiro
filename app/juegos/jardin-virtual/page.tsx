@@ -205,6 +205,7 @@ export default function JardinVirtualPage() {
       onInput: handleInput,
       onRejected: handleRejectedInput,
       cooldownMs: 350,
+      isActionEnabled: () => snapshot.state === "active",
     });
     controllerRef.current = controller;
     controller.start();
@@ -212,7 +213,7 @@ export default function JardinVirtualPage() {
       controller.stop();
       controllerRef.current = null;
     };
-  }, [handleInput, handleRejectedInput, mode]);
+  }, [handleInput, handleRejectedInput, mode, snapshot.state]);
 
   useEffect(() => {
     if (snapshot.state !== "active") {

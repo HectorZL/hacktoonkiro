@@ -114,14 +114,20 @@ export default function CarreraSacosPage() {
   }, []);
 
   useEffect(() => {
-    const controller = new InputController({ mode, onInput: handleInput, onRejected: handleRejectedInput, cooldownMs: 350 });
+    const controller = new InputController({
+      mode,
+      onInput: handleInput,
+      onRejected: handleRejectedInput,
+      cooldownMs: 350,
+      isActionEnabled: () => snapshot.state === "playing",
+    });
     controllerRef.current = controller;
     controller.start();
     return () => {
       controller.stop();
       controllerRef.current = null;
     };
-  }, [handleInput, handleRejectedInput, mode]);
+  }, [handleInput, handleRejectedInput, mode, snapshot.state]);
 
   useEffect(() => {
     if (snapshot.state !== "playing") {

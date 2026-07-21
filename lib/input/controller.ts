@@ -14,18 +14,26 @@ export type InputControllerOptions = {
   onRejected?: RejectedInputListener;
   cooldownMs?: number;
   handLoader?: HandLoader;
+  isActionEnabled?: () => boolean;
 };
 
 class KeyboardAdapter implements InputAdapter {
   private readonly onInput: InputListener;
   private readonly emit: (input: GameInput) => boolean;
+  private readonly isActionEnabled: () => boolean;
   private readonly target: Window;
   private readonly handleKeyDown: (event: KeyboardEvent) => void;
 
-  constructor(target: Window, emit: (input: GameInput) => boolean, onInput: InputListener) {
+  constructor(
+    target: Window,
+    emit: (input: GameInput) => boolean,
+    onInput: InputListener,
+    isActionEnabled: () => boolean,
+  ) {
     this.target = target;
     this.emit = emit;
     this.onInput = onInput;
+    this.isActionEnabled = isActionEnabled;
     this.handleKeyDown = (event) => {
       if (event.repeat) {
         return;
@@ -43,6 +51,10 @@ class KeyboardAdapter implements InputAdapter {
 
       const element = event.target as HTMLElement | null;
       if (element?.closest("button, a, input, textarea, select")) {
+        return;
+      }
+
+      if (!this.isActionEnabled()) {
         return;
       }
 
@@ -160,7 +172,12 @@ export class InputController {
     this.keyboardAdapter =
       typeof window === "undefined"
         ? null
-        : new KeyboardAdapter(window, (input) => this.dispatch(input), this.onInput);
+        : new KeyboardAdapter(
+            window,
+            (input) => this.dispatch(input),
+            this.onInput,
+            options.isActionEnabled ?? (() => true),
+          );
   }
 
   start() {
