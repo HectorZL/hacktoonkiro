@@ -28,7 +28,7 @@ La base de accesibilidad, los perfiles, la entrada unificada y el motor de asist
 - Proyecto Next.js con TypeScript y App Router.
 - Tailwind CSS configurado mediante PostCSS.
 - ESLint y configuración de compilación.
-- Página inicial accesible en español.
+- Portada simplificada para personas adultas mayores: tres juegos visibles, botones grandes con la acción “Jugar” y opciones del cuidador separadas.
 - Perfiles locales de demostración y preparación para Supabase con RLS.
 - Entrada unificada por barra espaciadora, toque y mano simulada.
 - Motor de estados con pausa, reanudación, reinicio, asistencia y práctica sin penalización.

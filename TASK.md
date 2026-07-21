@@ -145,7 +145,9 @@ flowchart TD
 - Verificación de foco visible.
 - Prueba de zoom al 200%.
 
-**Demo:** Página inicial accesible con un botón grande que puede activarse con teclado y toque.
+**Estado:** La portada muestra directamente los tres juegos disponibles con instrucciones breves y botones “Jugar” grandes. Las opciones de perfiles y cuidador están separadas en un bloque secundario; los enlaces técnicos y la demostración inicial se retiraron para reducir la carga cognitiva.
+
+**Demo:** Una persona puede identificar y abrir un juego sin pasar por configuración ni opciones técnicas.
 
 ### Task 2: Configurar Supabase y perfiles creados por cuidadores
 

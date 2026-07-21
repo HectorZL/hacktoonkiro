@@ -1,168 +1,108 @@
-"use client";
-
-import { useCallback, useEffect, useState } from "react";
+const games = [
+  {
+    href: "/juegos/carrera-sacos",
+    icon: "🏃",
+    name: "Carrera de sacos",
+    description: "Avanza y salta obstáculos con un toque.",
+    color: "bg-[#155e75] hover:bg-[#104c5f]",
+  },
+  {
+    href: "/juegos/trompo",
+    icon: "🌀",
+    name: "Lanzamiento del trompo",
+    description: "Haz girar el trompo en el momento indicado.",
+    color: "bg-[#7c3f00] hover:bg-[#633300]",
+  },
+  {
+    href: "/juegos/jardin-virtual",
+    icon: "🌻",
+    name: "El Jardín Virtual",
+    description: "Cuida las plantas a tu propio ritmo.",
+    color: "bg-[#166534] hover:bg-[#12522a]",
+  },
+];
 
 export default function Home() {
-  const [feedback, setFeedback] = useState("Aún no se ha realizado ninguna acción.");
-  const [actionCount, setActionCount] = useState(0);
-
-  const registerAction = useCallback(() => {
-    setActionCount((currentCount) => currentCount + 1);
-    setFeedback("Acción recibida. Puedes continuar cuando quieras.");
-  }, []);
-
-  useEffect(() => {
-    function handleSpacebar(event: KeyboardEvent) {
-      if (event.code !== "Space" || event.repeat) {
-        return;
-      }
-
-      const target = event.target as HTMLElement | null;
-      if (target?.closest("button, a, input, textarea, select")) {
-        return;
-      }
-
-      event.preventDefault();
-      registerAction();
-    }
-
-    window.addEventListener("keydown", handleSpacebar);
-    return () => window.removeEventListener("keydown", handleSpacebar);
-  }, [registerAction]);
-
   return (
-    <main className="min-h-screen px-5 py-8 sm:px-8 sm:py-12">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
-        <header className="flex flex-col gap-3">
-          <p className="font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
-            Plataforma de juegos accesibles
+    <main className="min-h-screen px-4 py-6 sm:px-8 sm:py-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+        <header className="rounded-[var(--radius-card)] bg-[var(--color-surface)] px-5 py-7 text-center shadow-[var(--shadow-card)] sm:px-10 sm:py-10">
+          <p className="text-lg font-bold text-[var(--color-primary)]">
+            Juegos para disfrutar
           </p>
-          <div className="flex flex-wrap gap-3">
-            <a
-              href="/perfiles"
-              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
-            >
-              Gestionar perfiles de jugadores
-            </a>
-            <a
-              href="/cuidador"
-              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
-            >
-              Ver actividad del cuidador
-            </a>
-            <a
-              href="/entrada"
-              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
-            >
-              Probar entradas
-            </a>
-            <a
-              href="/motor"
-              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
-            >
-              Probar motor de juego
-            </a>
-            <a
-              href="/juegos/carrera-sacos"
-              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
-            >
-              Jugar Carrera de sacos
-            </a>
-            <a
-              href="/juegos/trompo"
-              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
-            >
-              Jugar Lanzamiento del trompo
-            </a>
-            <a
-              href="/juegos/jardin-virtual"
-              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
-            >
-              Visitar El Jardín Virtual
-            </a>
-          </div>
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
-            Una acción sencilla para comenzar
+          <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
+            ¿Qué quieres jugar hoy?
           </h1>
-          <p className="max-w-2xl text-xl text-[var(--color-text-muted)]">
-            Esta es la pantalla inicial del proyecto. En los juegos podrás usar
-            una pulsación de la barra espaciadora o un toque grande en la pantalla.
+          <p className="mx-auto mt-4 max-w-2xl text-xl text-[var(--color-text-muted)] sm:text-2xl">
+            Elige un juego y toca el botón grande que dice <strong>Jugar</strong>.
           </p>
         </header>
 
-        <section
-          aria-labelledby="demo-title"
-          className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)] sm:p-10"
-        >
-          <div className="flex flex-col gap-6">
-            <div>
-              <p className="mb-2 text-base font-semibold text-[var(--color-primary)]">
-                Demostración del Task 1
-              </p>
-              <h2 id="demo-title" className="text-3xl font-bold">
-                Prueba la acción principal
-              </h2>
-              <p className="mt-3 max-w-2xl text-[var(--color-text-muted)]">
-                Pulsa la barra espaciadora en tu computadora o toca el botón una
-                sola vez. No necesitas mantenerlo presionado.
-              </p>
-            </div>
+        <section aria-labelledby="games-title">
+          <h2 id="games-title" className="mb-5 text-center text-3xl font-bold">
+            Elige un juego
+          </h2>
 
-            <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-              <button
-                type="button"
-                onClick={registerAction}
-                className="min-h-16 w-full rounded-2xl bg-[var(--color-primary)] px-8 py-4 text-xl font-bold text-[var(--color-primary-contrast)] transition-colors hover:bg-[var(--color-primary-hover)] sm:w-auto"
+          <div className="grid gap-5 lg:grid-cols-3">
+            {games.map((game) => (
+              <article
+                key={game.href}
+                className="flex flex-col rounded-[var(--radius-card)] border-2 border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)]"
               >
-                Realizar acción
-              </button>
-              <p className="text-base text-[var(--color-text-muted)]">
-                Acciones realizadas: <strong>{actionCount}</strong>
-              </p>
-            </div>
-
-            <div
-              aria-live="polite"
-              aria-atomic="true"
-              className="rounded-xl border border-[var(--color-success)] bg-[var(--color-success-surface)] p-5 text-lg font-semibold text-[var(--color-success)]"
-            >
-              <span aria-hidden="true" className="mr-2">
-                ✓
-              </span>
-              {feedback}
-            </div>
+                <span
+                  aria-hidden="true"
+                  className="mb-3 text-center text-6xl leading-none"
+                >
+                  {game.icon}
+                </span>
+                <h3 className="text-center text-2xl font-bold">{game.name}</h3>
+                <p className="mt-3 flex-1 text-center text-lg text-[var(--color-text-muted)]">
+                  {game.description}
+                </p>
+                <a
+                  href={game.href}
+                  className={`mt-6 flex min-h-16 w-full items-center justify-center rounded-2xl px-6 py-4 text-center text-2xl font-bold text-white no-underline ${game.color}`}
+                  aria-label={`Jugar ${game.name}`}
+                >
+                  Jugar
+                </a>
+              </article>
+            ))}
           </div>
         </section>
 
-        <nav
-          aria-label="Características de accesibilidad"
-          className="grid gap-4 sm:grid-cols-3"
+        <aside
+          aria-labelledby="support-title"
+          className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-5 sm:p-7"
         >
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-            <h2 className="text-xl font-bold">Entrada simple</h2>
-            <p className="mt-2 text-[var(--color-text-muted)]">
-              Una tecla o un toque, sin combinaciones.
-            </p>
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 id="support-title" className="text-2xl font-bold">
+                Opciones para familiares y cuidadores
+              </h2>
+              <p className="mt-1 text-[var(--color-text-muted)]">
+                No necesitas entrar aquí para comenzar a jugar.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <a
+                href="/perfiles"
+                className="flex min-h-14 items-center justify-center rounded-xl border-2 border-[var(--color-primary)] bg-[var(--color-surface)] px-5 py-3 text-center font-bold text-[var(--color-primary)] no-underline hover:bg-white"
+              >
+                Elegir jugador
+              </a>
+              <a
+                href="/cuidador"
+                className="flex min-h-14 items-center justify-center rounded-xl border-2 border-[var(--color-primary)] bg-[var(--color-surface)] px-5 py-3 text-center font-bold text-[var(--color-primary)] no-underline hover:bg-white"
+              >
+                Zona del cuidador
+              </a>
+            </div>
           </div>
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-            <h2 className="text-xl font-bold">Feedback visible</h2>
-            <p className="mt-2 text-[var(--color-text-muted)]">
-              Cada acción tiene una confirmación escrita y visual.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-            <h2 className="text-xl font-bold">Ritmo tranquilo</h2>
-            <p className="mt-2 text-[var(--color-text-muted)]">
-              Sin movimientos rápidos ni precisión fina.
-            </p>
-          </div>
-        </nav>
+        </aside>
 
-        <footer className="border-t border-[var(--color-border)] pt-5 text-base text-[var(--color-text-muted)]">
-          <p>
-            Prototipo no clínico. La plataforma mostrará actividad de juego, no
-            diagnósticos médicos.
-          </p>
+        <footer className="pb-3 text-center text-base text-[var(--color-text-muted)]">
+          <p>Actividad recreativa. Esta plataforma no realiza diagnósticos médicos.</p>
         </footer>
       </div>
     </main>
