@@ -358,34 +358,28 @@ type GameInput =
 
 **Demo:** El jugador cuida una planta, flores o mascota usando solo espacio o un toque.
 
-### Task 9: Añadir audio opcional y equivalencias visuales
+### Task 9: Añadir audio opcional y equivalencias visuales — base implementada
 
 **Objetivo:** Añadir feedback sonoro sin hacer que el audio sea necesario.
 
 **Implementación:**
 
-- Crear `AudioManager`.
-- Separar:
-  - música;
-  - efectos;
-  - narración, si se añade.
-- Ofrecer silencio completo.
-- Para cada sonido crear una equivalencia:
-  - texto;
-  - icono;
-  - cambio de estado;
-  - animación persistente.
-- Evitar afirmar una frecuencia universalmente adecuada; probar los sonidos con usuarios.
-- Respetar las restricciones de reproducción automática del navegador.
+- Crear `lib/audio/manager.ts` con tonos generados localmente mediante Web Audio.
+- Activar las alertas únicamente después de una decisión explícita del usuario.
+- Ofrecer silencio completo mediante un control visible en El Jardín Virtual.
+- Emitir alertas suaves para inicio, cuidado, cambio de escena, pausa y reanudación.
+- Mantener para cada alerta una equivalencia visual y textual mediante icono, progreso y `aria-live`.
+- No almacenar, descargar ni enviar audio; si el navegador no admite Web Audio, la actividad continúa con feedback visual.
+- La música, narración y control de volumen quedan para una ampliación posterior; no se afirma una frecuencia universal adecuada.
 
 **Tests:**
 
-- El juego es comprensible sin audio.
-- El volumen se puede cambiar.
-- El audio no bloquea la partida si el navegador lo rechaza.
-- Cada evento sonoro tiene equivalente visual.
+- El jardín es comprensible sin audio.
+- Las alertas se pueden activar y silenciar.
+- El audio no bloquea la partida si el navegador lo rechaza o no lo admite.
+- Cada evento sonoro tiene equivalente visual y escrito.
 
-**Demo:** Jugar con audio activado y silenciado sin perder información.
+**Demo:** Cuidar el jardín con alertas activadas y silenciadas sin perder información.
 
 ### Task 10: Registrar sesiones y datos mínimos
 

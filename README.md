@@ -35,6 +35,7 @@ La base de accesibilidad, los perfiles, la entrada unificada y el motor de asist
 - Carrera de sacos con avance automático, salto por una acción y ventana amplia.
 - Lanzamiento del trompo con marca móvil, lanzamiento por una acción y ventana amplia.
 - El Jardín Virtual con escenas lentas, cuidado por una acción y sin derrota.
+- Alertas sonoras opcionales en el jardín, con silencio explícito y equivalentes visuales.
 - Protección contra repeticiones de una pulsación larga.
 - Feedback visual con `aria-live`.
 - Foco visible para teclado.
