@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AudioManager } from "@/lib/audio/manager";
 import { InputController } from "@/lib/input/controller";
 import type { GameInput, InputMode } from "@/lib/input/types";
+import { RaceScene } from "./race-scene";
 
 type RaceState = "idle" | "playing" | "paused" | "completed";
 type AssistanceLevel = "basic" | "guided" | "assisted";
@@ -54,17 +56,31 @@ export default function CarreraSacosPage() {
   const [assistance, setAssistance] = useState<AssistanceLevel>("guided");
   const [snapshot, setSnapshot] = useState<RaceSnapshot>(createInitialSnapshot);
   const [inputFeedback, setInputFeedback] = useState("La ventana de salto es amplia y no hay eliminación.");
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const controllerRef = useRef<InputController | null>(null);
+  const audioRef = useRef<AudioManager | null>(null);
+  const previousRaceStateRef = useRef<RaceState>("idle");
+
+  if (audioRef.current === null) {
+    audioRef.current = new AudioManager();
+  }
 
   const startRace = useCallback(() => {
+    audioRef.current?.play("start");
     setSnapshot({
       ...createInitialSnapshot(),
       state: "playing",
-      message: "La carrera comenzó. El personaje avanza solo; pulsa para saltar.",
+      message: "La carrera comenzó. Los tres personajes avanzan; pulsa para saltar.",
     });
   }, []);
 
   const togglePause = useCallback(() => {
+    if (snapshot.state === "playing") {
+      audioRef.current?.play("pause");
+    } else if (snapshot.state === "paused") {
+      audioRef.current?.play("resume");
+    }
+
     setSnapshot((current) => {
       if (current.state === "playing") {
         return { ...current, state: "paused", message: "Carrera pausada. La posición se conserva." };
@@ -74,7 +90,7 @@ export default function CarreraSacosPage() {
       }
       return current;
     });
-  }, []);
+  }, [snapshot.state]);
 
   const jump = useCallback(() => {
     setSnapshot((current) => {
@@ -105,6 +121,7 @@ export default function CarreraSacosPage() {
     if (input.type === "pause") {
       togglePause();
     } else if (input.type === "action") {
+      audioRef.current?.play("jump");
       jump();
     }
   }, [jump, togglePause]);
@@ -128,6 +145,35 @@ export default function CarreraSacosPage() {
       controllerRef.current = null;
     };
   }, [handleInput, handleRejectedInput, mode, snapshot.state]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) {
+      return;
+    }
+
+    if (!soundEnabled) {
+      audio.stopMusic();
+      previousRaceStateRef.current = snapshot.state;
+      return;
+    }
+
+    if (snapshot.state === "playing") {
+      audio.startMusic();
+    } else {
+      audio.stopMusic();
+    }
+
+    if (snapshot.state === "completed" && previousRaceStateRef.current !== "completed") {
+      audio.play("finish");
+    }
+    previousRaceStateRef.current = snapshot.state;
+  }, [snapshot.state, soundEnabled]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    return () => audio?.dispose();
+  }, []);
 
   useEffect(() => {
     if (snapshot.state !== "playing") {
@@ -172,6 +218,17 @@ export default function CarreraSacosPage() {
     controllerRef.current?.emitTouchPause();
   }
 
+  function toggleSound() {
+    const nextEnabled = !soundEnabled;
+    audioRef.current?.setEnabled(nextEnabled);
+    setSoundEnabled(nextEnabled);
+    setInputFeedback(
+      nextEnabled
+        ? "Música suave activada. Los avisos visuales siguen disponibles."
+        : "Música silenciada. La carrera continúa con avisos visuales y escritos.",
+    );
+  }
+
   const nextObstacle = obstacles[snapshot.obstacleIndex];
   const progress = Math.round(snapshot.position);
   const isJumping = snapshot.jumping;
@@ -186,7 +243,7 @@ export default function CarreraSacosPage() {
           <p className="font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">Actividad 1 · Carrera de sacos</p>
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">Carrera de sacos</h1>
           <p className="max-w-3xl text-xl text-[var(--color-text-muted)]">
-            El personaje avanza automáticamente. Pulsa espacio o toca una vez para saltar los obstáculos dentro de una ventana amplia.
+            Tres personajes avanzan automáticamente en un paisaje ilustrado. Pulsa espacio o toca una vez para saltar los obstáculos dentro de una ventana amplia.
           </p>
         </header>
 
@@ -214,6 +271,22 @@ export default function CarreraSacosPage() {
               </div>
             </fieldset>
           </div>
+          <div className="mt-6 flex flex-col gap-4 rounded-2xl border-2 border-[var(--color-border)] bg-[var(--color-surface-muted)] p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-xl font-bold">Música opcional</h3>
+              <p className="mt-1 text-[var(--color-text-muted)]">
+                La melodía y los efectos se generan en el navegador. Todos los avisos también aparecen escritos.
+              </p>
+            </div>
+            <button
+              type="button"
+              aria-pressed={soundEnabled}
+              onClick={toggleSound}
+              className="min-h-14 shrink-0 rounded-xl border-4 border-[var(--color-primary)] bg-[var(--color-surface)] px-6 font-bold text-[var(--color-primary)] hover:bg-[var(--color-background)]"
+            >
+              {soundEnabled ? "Silenciar música" : "Activar música"}
+            </button>
+          </div>
         </section>
 
         <section aria-labelledby="race-title" className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)] sm:p-10">
@@ -223,7 +296,9 @@ export default function CarreraSacosPage() {
                 <p className="mb-2 text-base font-semibold text-[var(--color-primary)]">Competencia de juego del saco</p>
                 <h2 id="race-title" className="text-3xl font-bold">Avance: {progress}%</h2>
               </div>
-              <span className="rounded-full bg-[var(--color-surface-muted)] px-5 py-2 text-lg font-bold">{snapshot.state === "playing" ? "En carrera" : snapshot.state === "paused" ? "Pausado" : snapshot.state === "completed" ? "Llegada" : "Listo"}</span>
+              <span className="rounded-full bg-[var(--color-surface-muted)] px-5 py-2 text-lg font-bold">
+                {snapshot.state === "playing" ? "En carrera" : snapshot.state === "paused" ? "Pausado" : snapshot.state === "completed" ? "Llegada" : "Listo"} · Música {soundEnabled ? "activa" : "silenciada"}
+              </span>
             </div>
 
             <div>
@@ -231,15 +306,13 @@ export default function CarreraSacosPage() {
               <div role="progressbar" aria-label={`${progress}% de carrera completada`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} className="h-5 overflow-hidden rounded-full bg-[var(--color-surface-muted)]"><div className="h-full rounded-full bg-[var(--color-primary)] transition-[width]" style={{ width: `${progress}%` }} /></div>
             </div>
 
-            <div role="group" aria-label="Pista de carrera" className="relative h-72 overflow-hidden rounded-3xl border-4 border-[var(--color-border)] bg-[#ecfdf5]">
-              <div className="absolute inset-x-0 top-1/2 border-t-4 border-dashed border-[var(--color-border)]" />
-              {obstacles.map((obstacle, index) => (
-                <div key={obstacle} role="img" aria-label={`Obstáculo ${index + 1}`} className="absolute top-[42%] flex h-14 w-10 -translate-x-1/2 items-center justify-center rounded-xl border-4 border-[#92400e] bg-[#f59e0b] text-2xl" style={{ left: `${obstacle}%` }}>▲</div>
-              ))}
-              <div className="absolute left-[20%] right-[20%] top-[24%] h-10 rounded-full border-4 border-dashed border-[var(--color-success)] bg-[var(--color-success-surface)] text-center text-sm font-bold text-[var(--color-success)]">Ventana de salto amplia</div>
-              <div role="img" aria-label="Niño corriendo dentro de un saco" className={`absolute top-[37%] flex h-24 w-20 -translate-x-1/2 items-center justify-center rounded-b-3xl border-4 border-[#1e3a8a] bg-[#bfdbfe] text-4xl transition-[left,transform] duration-100 ${isJumping ? "-translate-y-10" : ""}`} style={{ left: `${snapshot.position}%` }}>🧒</div>
-              <div className="absolute bottom-4 right-5 rounded-xl bg-[var(--color-surface)] px-4 py-2 text-lg font-bold">Meta →</div>
-            </div>
+            <RaceScene
+              progress={snapshot.position}
+              state={snapshot.state}
+              isJumping={isJumping}
+              nextObstacle={nextObstacle}
+              assistanceWindow={assistanceSettings[assistance].window}
+            />
 
             <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
               <button type="button" onClick={startRace} className="min-h-16 rounded-2xl bg-[var(--color-primary)] px-8 text-xl font-bold text-[var(--color-primary-contrast)] hover:bg-[var(--color-primary-hover)]">{snapshot.state === "completed" ? "Reiniciar carrera" : "Comenzar carrera"}</button>

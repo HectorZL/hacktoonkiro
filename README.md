@@ -32,7 +32,7 @@ La base de accesibilidad, los perfiles, la entrada unificada y el motor de asist
 - Perfiles locales de demostración y preparación para Supabase con RLS.
 - Entrada unificada por barra espaciadora, toque y mano simulada.
 - Motor de estados con pausa, reanudación, reinicio, asistencia y práctica sin penalización.
-- Carrera de sacos con avance automático, salto por una acción y ventana amplia.
+- Carrera de sacos rediseñada como videojuego 2D ilustrado, con fondos parallax, tres corredores, obstáculos, monedas decorativas y música opcional generada localmente.
 - Lanzamiento del trompo con marca móvil, lanzamiento por una acción y ventana amplia.
 - El Jardín Virtual con escenas lentas, cuidado por una acción y sin derrota.
 - Alertas sonoras opcionales en el jardín, con silencio explícito y equivalentes visuales.

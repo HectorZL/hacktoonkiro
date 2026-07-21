@@ -1,0 +1,335 @@
+.scene {
+  position: relative;
+  min-height: 34rem;
+  overflow: hidden;
+  border: 4px solid var(--color-border);
+  border-radius: 1.5rem;
+  background: var(--color-surface-muted);
+  isolation: isolate;
+}
+
+.sky,
+.layer {
+  position: absolute;
+  inset-inline: 0;
+  pointer-events: none;
+}
+
+.sky {
+  inset-block: 0;
+  background: url("/games/carrera-sacos/backgrounds/sky.svg") center / cover no-repeat;
+}
+
+.layer {
+  width: 100%;
+  background-position-x: var(--mountains-position);
+  background-repeat: repeat-x;
+  transition: background-position 100ms linear;
+}
+
+.mountains {
+  bottom: 36%;
+  height: 52%;
+  background-image: url("/games/carrera-sacos/backgrounds/mountains.svg");
+  background-position-y: bottom;
+  background-size: auto 100%;
+}
+
+.trees {
+  bottom: 33%;
+  height: 31%;
+  background-image: url("/games/carrera-sacos/backgrounds/trees.svg");
+  background-position-x: var(--trees-position);
+  background-position-y: bottom;
+  background-size: auto 100%;
+}
+
+.ground {
+  bottom: 0;
+  height: 39%;
+  background-image: url("/games/carrera-sacos/backgrounds/ground.svg");
+  background-position-x: var(--ground-position);
+  background-position-y: top;
+  background-size: auto 100%;
+}
+
+.laneLine {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  left: 0;
+  border-top: 3px dashed var(--color-primary-contrast);
+  opacity: 0.7;
+}
+
+.laneLineTop {
+  bottom: 25.5%;
+}
+
+.laneLineMiddle {
+  bottom: 12.5%;
+}
+
+.hud {
+  position: absolute;
+  z-index: 20;
+  top: 1rem;
+  right: 1rem;
+  left: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.hud span,
+.racerName,
+.nextObstacle span {
+  border: 2px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  padding: 0.25rem 0.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+.coin {
+  position: absolute;
+  z-index: 4;
+  bottom: 40%;
+  width: clamp(2.2rem, 6vw, 3.5rem);
+  height: auto;
+  transform: translateX(-50%);
+  animation: coin-float 1.4s ease-in-out infinite;
+}
+
+.obstacleWrap {
+  position: absolute;
+  z-index: 8;
+  bottom: 0.5%;
+  width: clamp(4rem, 11vw, 6.5rem);
+  transform: translateX(-50%);
+  transition: left 100ms linear;
+}
+
+.obstacleWrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.nextObstacle {
+  filter: drop-shadow(0 0 0.7rem var(--color-focus));
+}
+
+.nextObstacle span {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: max-content;
+  transform: translate(-50%, -0.25rem);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.finish {
+  position: absolute;
+  z-index: 6;
+  bottom: 0;
+  width: clamp(5rem, 14vw, 8.5rem);
+  height: auto;
+  transform: translateX(-50%);
+  transition: left 100ms linear;
+}
+
+.racer {
+  position: absolute;
+  z-index: 10;
+  width: clamp(4.8rem, 13vw, 7.3rem);
+  transform: translateX(-50%);
+  transition: left 100ms linear;
+}
+
+.purpleRacer {
+  z-index: 7;
+  bottom: 25%;
+}
+
+.redRacer {
+  z-index: 9;
+  bottom: 12%;
+}
+
+.playerRacer {
+  z-index: 12;
+  bottom: -1%;
+}
+
+.sprite {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 0.45rem 0.25rem rgb(31 41 51 / 0.25));
+}
+
+.racerName {
+  position: absolute;
+  z-index: 2;
+  bottom: 92%;
+  left: 50%;
+  width: max-content;
+  transform: translateX(-50%);
+  font-size: clamp(0.65rem, 1.5vw, 0.85rem);
+  font-weight: 800;
+}
+
+.playerName {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+.running {
+  animation: sack-run 480ms ease-in-out infinite;
+}
+
+.runningAlt {
+  animation: sack-run 540ms ease-in-out 90ms infinite;
+}
+
+.jumping {
+  animation: sack-jump 850ms ease-out both;
+}
+
+.celebrating {
+  animation: celebrate 700ms ease-in-out infinite;
+}
+
+.jumpWindow {
+  position: absolute;
+  z-index: 5;
+  bottom: 0;
+  height: 12.5%;
+  overflow: hidden;
+  border-inline: 4px dashed var(--color-success);
+  background: var(--color-success-surface);
+  color: transparent;
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.paused :is(.running, .runningAlt, .jumping, .celebrating, .coin) {
+  animation-play-state: paused;
+}
+
+@keyframes sack-run {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-0.6rem) rotate(1deg);
+  }
+}
+
+@keyframes sack-jump {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  45% {
+    transform: translateY(-5.5rem) rotate(-4deg);
+  }
+}
+
+@keyframes celebrate {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-1rem) rotate(3deg);
+  }
+}
+
+@keyframes coin-float {
+  0%,
+  100% {
+    transform: translate(-50%, 0) rotateY(0deg);
+  }
+  50% {
+    transform: translate(-50%, -0.6rem) rotateY(180deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .scene {
+    min-height: 28rem;
+  }
+
+  .hud {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mountains {
+    bottom: 40%;
+  }
+
+  .trees {
+    bottom: 36%;
+  }
+
+  .ground {
+    height: 43%;
+  }
+
+  .purpleRacer {
+    bottom: 27%;
+  }
+
+  .redRacer {
+    bottom: 13%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer {
+    background-position-x: center !important;
+  }
+
+  .running,
+  .runningAlt,
+  .celebrating,
+  .coin {
+    animation: none;
+  }
+
+  .jumping {
+    animation: reduced-jump 1ms both;
+  }
+}
+
+@keyframes reduced-jump {
+  to {
+    transform: translateY(-2rem);
+  }
+}
+
+@media (forced-colors: active) {
+  .hud span,
+  .racerName,
+  .nextObstacle span {
+    border: 2px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .jumpWindow {
+    border-color: Highlight;
+    background: transparent;
+  }
+}

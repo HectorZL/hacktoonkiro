@@ -259,9 +259,11 @@ type GameInput =
 
 **Demo:** Una pantalla presenta una opción, espera la pulsación y muestra una confirmación grande.
 
-### Task 5: Implementar “Carrera de sacos”
+### Task 5: Implementar “Carrera de sacos” — prototipo ilustrado implementado
 
 **Objetivo:** Crear una carrera lúdica que se controle con una sola pulsación o toque, sin exigir movimientos rápidos.
+
+**Estado:** La actividad usa ilustraciones SVG originales, fondo parallax en capas, tres corredores amistosos, obstáculos recuperables, monedas decorativas y música opcional generada con Web Audio. El arte y la animación mantienen equivalentes escritos, pausa y reducción de movimiento.
 
 **Implementación:**
 
