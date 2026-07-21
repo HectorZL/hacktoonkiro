@@ -231,13 +231,13 @@ export default function CarreraSacosPage() {
               <div role="progressbar" aria-label={`${progress}% de carrera completada`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} className="h-5 overflow-hidden rounded-full bg-[var(--color-surface-muted)]"><div className="h-full rounded-full bg-[var(--color-primary)] transition-[width]" style={{ width: `${progress}%` }} /></div>
             </div>
 
-            <div aria-label="Pista de carrera" className="relative h-72 overflow-hidden rounded-3xl border-4 border-[var(--color-border)] bg-[#ecfdf5]">
+            <div role="group" aria-label="Pista de carrera" className="relative h-72 overflow-hidden rounded-3xl border-4 border-[var(--color-border)] bg-[#ecfdf5]">
               <div className="absolute inset-x-0 top-1/2 border-t-4 border-dashed border-[var(--color-border)]" />
               {obstacles.map((obstacle, index) => (
-                <div key={obstacle} aria-label={`Obstáculo ${index + 1}`} className="absolute top-[42%] flex h-14 w-10 -translate-x-1/2 items-center justify-center rounded-xl border-4 border-[#92400e] bg-[#f59e0b] text-2xl" style={{ left: `${obstacle}%` }}>▲</div>
+                <div key={obstacle} role="img" aria-label={`Obstáculo ${index + 1}`} className="absolute top-[42%] flex h-14 w-10 -translate-x-1/2 items-center justify-center rounded-xl border-4 border-[#92400e] bg-[#f59e0b] text-2xl" style={{ left: `${obstacle}%` }}>▲</div>
               ))}
-              <div aria-label="Ventana amplia de salto" className="absolute left-[20%] right-[20%] top-[24%] h-10 rounded-full border-4 border-dashed border-[var(--color-success)] bg-[var(--color-success-surface)] text-center text-sm font-bold text-[var(--color-success)]">Ventana de salto amplia</div>
-              <div aria-label="Niño corriendo dentro de un saco" className={`absolute top-[37%] flex h-24 w-20 -translate-x-1/2 items-center justify-center rounded-b-3xl border-4 border-[#1e3a8a] bg-[#bfdbfe] text-4xl transition-[left,transform] duration-100 ${isJumping ? "-translate-y-10" : ""}`} style={{ left: `${snapshot.position}%` }}>🧒</div>
+              <div className="absolute left-[20%] right-[20%] top-[24%] h-10 rounded-full border-4 border-dashed border-[var(--color-success)] bg-[var(--color-success-surface)] text-center text-sm font-bold text-[var(--color-success)]">Ventana de salto amplia</div>
+              <div role="img" aria-label="Niño corriendo dentro de un saco" className={`absolute top-[37%] flex h-24 w-20 -translate-x-1/2 items-center justify-center rounded-b-3xl border-4 border-[#1e3a8a] bg-[#bfdbfe] text-4xl transition-[left,transform] duration-100 ${isJumping ? "-translate-y-10" : ""}`} style={{ left: `${snapshot.position}%` }}>🧒</div>
               <div className="absolute bottom-4 right-5 rounded-xl bg-[var(--color-surface)] px-4 py-2 text-lg font-bold">Meta →</div>
             </div>
 

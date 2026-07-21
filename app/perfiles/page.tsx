@@ -371,10 +371,7 @@ export default function ProfilesPage() {
                         }`}
                       >
                         <span className="flex items-center gap-4">
-                          <span
-                            aria-label={`Avatar ${avatar.label}`}
-                            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#fef3c7] text-4xl"
-                          >
+                          <span role="img" aria-label={`Avatar ${avatar.label}`} className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#fef3c7] text-4xl">
                             {avatar.symbol}
                           </span>
                           <span>

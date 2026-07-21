@@ -242,18 +242,18 @@ export default function TrompoPage() {
               <div role="progressbar" aria-label={`${progress}% de progreso`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} className="h-5 overflow-hidden rounded-full bg-[var(--color-surface-muted)]"><div className="h-full rounded-full bg-[var(--color-primary)] transition-[width]" style={{ width: `${progress}%` }} /></div>
             </div>
 
-            <div aria-label="Indicador de ventana para lanzar el trompo" className="rounded-3xl border-4 border-[var(--color-border)] bg-[#eff6ff] p-6">
+            <div role="group" aria-label="Indicador de ventana para lanzar el trompo" className="rounded-3xl border-4 border-[var(--color-border)] bg-[#eff6ff] p-6">
               <div className="relative h-32 rounded-2xl bg-[var(--color-surface)]">
                 <div className="absolute top-6 h-20 rounded-2xl border-4 border-[var(--color-success)] bg-[var(--color-success-surface)]" style={{ left: `${launchWindow.start}%`, width: `${launchWindow.end - launchWindow.start}%` }}>
                   <span className="flex h-full items-center justify-center text-sm font-bold text-[var(--color-success)]">Ventana amplia</span>
                 </div>
-                <div className="absolute top-0 h-full w-1 rounded-full bg-[var(--color-primary)] transition-[left] duration-100" style={{ left: `${snapshot.marker}%` }} aria-label={`Marca en ${Math.round(snapshot.marker)}%`} />
+                <div role="img" aria-label={`Marca en ${Math.round(snapshot.marker)}%`} className="absolute top-0 h-full w-1 rounded-full bg-[var(--color-primary)] transition-[left] duration-100" style={{ left: `${snapshot.marker}%` }} />
               </div>
               <div className="mt-4 flex justify-between text-base font-semibold"><span>Espera la marca</span><span>Pulsa una vez</span></div>
             </div>
 
             <div className="flex min-h-48 items-center justify-center rounded-3xl border-4 border-[var(--color-border)] bg-[#fef3c7]">
-              <div aria-label="Trompo" className={`text-8xl ${isSpinning ? "animate-spin" : ""}`}>◢</div>
+              <div role="img" aria-label="Trompo" className={`text-8xl ${isSpinning ? "animate-spin" : ""}`}>◢</div>
             </div>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">

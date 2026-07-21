@@ -337,7 +337,7 @@ export default function JardinVirtualPage() {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-              <div aria-label={`Escena del jardín: ${scene.title}`} className="relative flex min-h-80 flex-col items-center justify-center overflow-hidden rounded-3xl border-4 border-[#65a30d] bg-gradient-to-b from-[#d9f99d] to-[#bbf7d0] p-8 text-center shadow-inner">
+              <div role="group" aria-label={`Escena del jardín: ${scene.title}`} className="relative flex min-h-80 flex-col items-center justify-center overflow-hidden rounded-3xl border-4 border-[#65a30d] bg-gradient-to-b from-[#d9f99d] to-[#bbf7d0] p-8 text-center shadow-inner">
                 <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-20 bg-[#86efac]" />
                 <div aria-hidden="true" className="absolute left-8 top-8 text-5xl">☀️</div>
                 <div aria-hidden="true" className="absolute right-8 top-12 text-4xl">☁️</div>
