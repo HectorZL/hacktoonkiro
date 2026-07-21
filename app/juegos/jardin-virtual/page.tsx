@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AudioManager } from "@/lib/audio/manager";
 import { InputController } from "@/lib/input/controller";
 import type { GameInput, InputMode } from "@/lib/input/types";
 
@@ -78,9 +79,41 @@ function createInitialSnapshot(): GardenSnapshot {
 export default function JardinVirtualPage() {
   const [mode, setMode] = useState<InputMode>("keyboard");
   const [assistance, setAssistance] = useState<AssistanceLevel>("guided");
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const [snapshot, setSnapshot] = useState<GardenSnapshot>(createInitialSnapshot);
   const [inputFeedback, setInputFeedback] = useState("No hay puntuación ni derrota. Puedes repetir la acción con calma.");
   const controllerRef = useRef<InputController | null>(null);
+  const audioRef = useRef<AudioManager | null>(null);
+  const previousSnapshotRef = useRef<GardenSnapshot | null>(null);
+
+  useEffect(() => {
+    const manager = new AudioManager();
+    audioRef.current = manager;
+    return () => {
+      manager.dispose();
+      audioRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const previousSnapshot = previousSnapshotRef.current;
+    if (previousSnapshot) {
+      if (snapshot.sceneIndex !== previousSnapshot.sceneIndex) {
+        audioRef.current?.play("scene");
+      }
+      if (snapshot.careCount !== previousSnapshot.careCount) {
+        audioRef.current?.play("care");
+      }
+      if (snapshot.state !== previousSnapshot.state) {
+        if (snapshot.state === "paused") {
+          audioRef.current?.play("pause");
+        } else if (snapshot.state === "active") {
+          audioRef.current?.play(previousSnapshot.state === "idle" ? "start" : "resume");
+        }
+      }
+    }
+    previousSnapshotRef.current = snapshot;
+  }, [snapshot]);
 
   const startGarden = useCallback(() => {
     setSnapshot({
@@ -192,6 +225,18 @@ export default function JardinVirtualPage() {
     controllerRef.current?.emitTouchPause();
   }
 
+  function toggleSound() {
+    const nextSoundEnabled = !soundEnabled;
+    setSoundEnabled(nextSoundEnabled);
+    audioRef.current?.setEnabled(nextSoundEnabled);
+    setInputFeedback(nextSoundEnabled
+      ? "Alertas de sonido activadas. Cada alerta también aparece escrita y visualmente."
+      : "Alertas de sonido silenciadas. La actividad continúa con feedback visual.");
+    if (nextSoundEnabled) {
+      audioRef.current?.play("start");
+    }
+  }
+
   const scene = scenes[snapshot.sceneIndex];
   const growthPercent = Math.round((snapshot.growth / 3) * 100);
   const gardenStatus = snapshot.state === "active" ? "En calma" : snapshot.state === "paused" ? "Pausado" : "Listo";
@@ -246,6 +291,13 @@ export default function JardinVirtualPage() {
               </div>
             </fieldset>
           </div>
+          <div className="mt-6 flex flex-col gap-4 rounded-2xl border-2 border-[var(--color-border)] bg-[var(--color-surface-muted)] p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-xl font-bold">Alertas de sonido</h3>
+              <p className="mt-1 text-[var(--color-text-muted)]">Son tonos suaves opcionales. Cada alerta también se muestra con texto e imagen.</p>
+            </div>
+            <button type="button" aria-pressed={soundEnabled} onClick={toggleSound} className="min-h-14 rounded-xl border-4 border-[var(--color-primary)] px-5 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface)]">{soundEnabled ? "Silenciar alertas" : "Activar alertas"}</button>
+          </div>
         </section>
 
         <section aria-labelledby="garden-title" className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)] sm:p-10">
@@ -290,7 +342,7 @@ export default function JardinVirtualPage() {
               <button type="button" onClick={emitPause} disabled={snapshot.state === "idle"} className="min-h-16 rounded-2xl border-4 border-[var(--color-primary)] px-8 text-xl font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50">{snapshot.state === "paused" ? "Reanudar" : "Pausar"}</button>
             </div>
 
-            <div aria-live="polite" aria-atomic="true" className="rounded-xl border border-[var(--color-success)] bg-[var(--color-success-surface)] p-5 text-lg font-semibold text-[var(--color-success)]"><span aria-hidden="true" className="mr-2">✓</span>{snapshot.message}</div>
+            <div aria-live="polite" aria-atomic="true" className="rounded-xl border border-[var(--color-success)] bg-[var(--color-success-surface)] p-5 text-lg font-semibold text-[var(--color-success)]"><span aria-hidden="true" className="mr-2">{soundEnabled ? "🔔" : "✓"}</span>{snapshot.message}</div>
             <dl className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-xl border border-[var(--color-border)] p-4"><dt className="text-base text-[var(--color-text-muted)]">Cuidados realizados</dt><dd className="text-3xl font-bold">{snapshot.careCount}</dd></div>
               <div className="rounded-xl border border-[var(--color-border)] p-4"><dt className="text-base text-[var(--color-text-muted)]">Escena</dt><dd className="text-3xl font-bold">{snapshot.sceneIndex + 1} de {scenes.length}</dd></div>
@@ -300,7 +352,7 @@ export default function JardinVirtualPage() {
           </div>
         </section>
 
-        <footer className="border-t border-[var(--color-border)] pt-5 text-base text-[var(--color-text-muted)]"><p>El jardín es una experiencia de entretenimiento accesible. No realiza evaluación médica ni clínica.</p></footer>
+        <footer className="border-t border-[var(--color-border)] pt-5 text-base text-[var(--color-text-muted)]"><p>El jardín es una experiencia de entretenimiento accesible. El sonido es opcional y no realiza evaluación médica ni clínica.</p></footer>
       </div>
     </main>
   );
