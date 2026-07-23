@@ -313,6 +313,12 @@ export default function ProfilesPage() {
             >
               Ver actividad del cuidador
             </Link>
+            <Link
+              href="/juegos"
+              className="w-fit rounded-xl bg-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary-contrast)] no-underline hover:bg-[var(--color-primary-hover)]"
+            >
+              Abrir sala de juegos
+            </Link>
             <Link className="w-fit font-semibold text-[var(--color-primary)] underline" href="/">
               ← Volver al inicio
             </Link>
