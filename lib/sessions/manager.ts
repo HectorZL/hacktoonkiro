@@ -2,7 +2,11 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { InputMode } from "@/lib/input/types";
 
 export type AssistanceLevel = "basic" | "guided" | "assisted";
-export type GameSessionKey = "carrera-sacos" | "trompo" | "jardin-virtual";
+export type GameSessionKey =
+  | "carrera-sacos"
+  | "trompo"
+  | "jardin-virtual"
+  | "mente-activa";
 export type ActivePlayer = {
   id: string;
   name: string;

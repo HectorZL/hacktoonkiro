@@ -14,8 +14,6 @@ type RaceSnapshot = {
   state: RaceState;
   position: number;
   obstacleIndex: number;
-  jumps: number;
-  missed: number;
   jumpUntil: number;
   jumping: boolean;
   message: string;
@@ -24,13 +22,13 @@ type RaceSnapshot = {
 const obstacles = [25, 50, 75];
 const inputModes: Array<{ mode: InputMode; label: string }> = [
   { mode: "keyboard", label: "Barra espaciadora" },
-  { mode: "touch", label: "Un toque" },
-  { mode: "hand", label: "Una mano" },
+  { mode: "touch", label: "Botón Saltar" },
+  { mode: "hand", label: "Movimiento de mano" },
 ];
-const assistanceLabels: Record<AssistanceLevel, string> = {
-  basic: "Básico",
-  guided: "Guiado",
-  assisted: "Asistido",
+const paceLabels: Record<AssistanceLevel, string> = {
+  basic: "Animado",
+  guided: "Tranquilo",
+  assisted: "Muy tranquilo",
 };
 const assistanceSettings: Record<AssistanceLevel, { speed: number; window: number }> = {
   basic: { speed: 1.2, window: 8 },
@@ -43,11 +41,9 @@ function createInitialSnapshot(): RaceSnapshot {
     state: "idle",
     position: 0,
     obstacleIndex: 0,
-    jumps: 0,
-    missed: 0,
     jumpUntil: 0,
     jumping: false,
-    message: "La carrera está lista. Comienza cuando quieras.",
+    message: "Todo listo.",
   };
 }
 
@@ -55,10 +51,10 @@ export default function CarreraSacosPage() {
   const [mode, setMode] = useState<InputMode>("keyboard");
   const [assistance, setAssistance] = useState<AssistanceLevel>("guided");
   const [snapshot, setSnapshot] = useState<RaceSnapshot>(createInitialSnapshot);
-  const [inputFeedback, setInputFeedback] = useState("La ventana de salto es amplia y no hay eliminación.");
   const [soundEnabled, setSoundEnabled] = useState(false);
   const controllerRef = useRef<InputController | null>(null);
   const audioRef = useRef<AudioManager | null>(null);
+  const optionsRef = useRef<HTMLDetailsElement | null>(null);
   const previousRaceStateRef = useRef<RaceState>("idle");
 
   if (audioRef.current === null) {
@@ -66,11 +62,12 @@ export default function CarreraSacosPage() {
   }
 
   const startRace = useCallback(() => {
+    optionsRef.current?.removeAttribute("open");
     audioRef.current?.play("start");
     setSnapshot({
       ...createInitialSnapshot(),
       state: "playing",
-      message: "La carrera comenzó. Los tres personajes avanzan; pulsa para saltar.",
+      message: "¡Vamos! Toca Saltar cuando se acerque la paca.",
     });
   }, []);
 
@@ -83,10 +80,10 @@ export default function CarreraSacosPage() {
 
     setSnapshot((current) => {
       if (current.state === "playing") {
-        return { ...current, state: "paused", message: "Carrera pausada. La posición se conserva." };
+        return { ...current, state: "paused", message: "La carrera está en pausa." };
       }
       if (current.state === "paused") {
-        return { ...current, state: "playing", message: "Carrera reanudada. Continúa con calma." };
+        return { ...current, state: "playing", message: "¡Continuamos!" };
       }
       return current;
     });
@@ -95,46 +92,40 @@ export default function CarreraSacosPage() {
   const jump = useCallback(() => {
     setSnapshot((current) => {
       if (current.state !== "playing") {
-        return { ...current, message: "Comienza la carrera para activar el salto." };
+        return current;
       }
 
       const settings = assistanceSettings[assistance];
       const obstacle = obstacles[current.obstacleIndex];
-      const nearObstacle = obstacle !== undefined && Math.abs(current.position - obstacle) <= settings.window;
-      const nextObstacleIndex = nearObstacle ? current.obstacleIndex + 1 : current.obstacleIndex;
+      const nearObstacle =
+        obstacle !== undefined && Math.abs(current.position - obstacle) <= settings.window;
 
       return {
         ...current,
-        obstacleIndex: nextObstacleIndex,
-        jumps: current.jumps + 1,
-        missed: nearObstacle ? current.missed : current.missed + 1,
+        obstacleIndex: nearObstacle ? current.obstacleIndex + 1 : current.obstacleIndex,
         jumpUntil: Date.now() + 850,
         jumping: true,
-        message: nearObstacle
-          ? "¡Salto correcto! El personaje superó el obstáculo."
-          : "Salto practicado. No pasa nada; la carrera continúa sin penalización.",
+        message: nearObstacle ? "¡Muy bien!" : "Buen intento. Sigue jugando.",
       };
     });
   }, [assistance]);
 
-  const handleInput = useCallback((input: GameInput) => {
-    if (input.type === "pause") {
-      togglePause();
-    } else if (input.type === "action") {
-      audioRef.current?.play("jump");
-      jump();
-    }
-  }, [jump, togglePause]);
-
-  const handleRejectedInput = useCallback(() => {
-    setInputFeedback("Entrada ignorada para evitar dos saltos accidentales seguidos.");
-  }, []);
+  const handleInput = useCallback(
+    (input: GameInput) => {
+      if (input.type === "pause") {
+        togglePause();
+      } else if (input.type === "action") {
+        audioRef.current?.play("jump");
+        jump();
+      }
+    },
+    [jump, togglePause],
+  );
 
   useEffect(() => {
     const controller = new InputController({
       mode,
       onInput: handleInput,
-      onRejected: handleRejectedInput,
       cooldownMs: 350,
       isActionEnabled: () => snapshot.state === "playing",
     });
@@ -144,7 +135,7 @@ export default function CarreraSacosPage() {
       controller.stop();
       controllerRef.current = null;
     };
-  }, [handleInput, handleRejectedInput, mode, snapshot.state]);
+  }, [handleInput, mode, snapshot.state]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -186,19 +177,28 @@ export default function CarreraSacosPage() {
           return current;
         }
 
-        const nextPosition = current.position + assistanceSettings[assistance].speed;
+        const settings = assistanceSettings[assistance];
+        const nextPosition = current.position + settings.speed;
         if (nextPosition >= 100) {
-          return { ...current, state: "completed", position: 100, jumping: false, message: "¡Carrera completada! Cada salto fue una oportunidad de práctica." };
+          return {
+            ...current,
+            state: "completed",
+            position: 100,
+            jumping: false,
+            message: "¡Llegaste a la meta!",
+          };
         }
 
         const obstacle = obstacles[current.obstacleIndex];
-        const passedObstacle = obstacle !== undefined && nextPosition > obstacle + assistanceSettings[assistance].window;
+        const passedObstacle =
+          obstacle !== undefined && nextPosition > obstacle + settings.window;
         return {
           ...current,
           position: nextPosition,
           jumping: current.jumpUntil > Date.now(),
-          obstacleIndex: passedObstacle ? current.obstacleIndex + 1 : current.obstacleIndex,
-          missed: passedObstacle ? current.missed + 1 : current.missed,
+          obstacleIndex: passedObstacle
+            ? current.obstacleIndex + 1
+            : current.obstacleIndex,
         };
       });
     }, 100);
@@ -222,115 +222,180 @@ export default function CarreraSacosPage() {
     const nextEnabled = !soundEnabled;
     audioRef.current?.setEnabled(nextEnabled);
     setSoundEnabled(nextEnabled);
-    setInputFeedback(
-      nextEnabled
-        ? "Música suave activada. Los avisos visuales siguen disponibles."
-        : "Música silenciada. La carrera continúa con avisos visuales y escritos.",
-    );
   }
 
   const nextObstacle = obstacles[snapshot.obstacleIndex];
   const progress = Math.round(snapshot.position);
-  const isJumping = snapshot.jumping;
 
   return (
-    <main className="min-h-screen px-5 py-8 sm:px-8 sm:py-12">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <header className="flex flex-col gap-3">
-          <Link className="w-fit font-semibold text-[var(--color-primary)] underline" href="/">
+    <main className="h-[100dvh] overflow-hidden p-2 sm:p-3">
+      <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-2 overflow-y-auto">
+        <header className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-5">
+          <Link
+            className="flex min-h-12 w-fit shrink-0 items-center rounded-xl border-3 border-[var(--color-primary)] bg-[var(--color-surface)] px-4 py-2 font-bold text-[var(--color-primary)] no-underline hover:bg-[var(--color-surface-muted)]"
+            href="/"
+          >
             ← Volver al inicio
           </Link>
-          <p className="font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">Actividad 1 · Carrera de sacos</p>
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">Carrera de sacos</h1>
-          <p className="max-w-3xl text-xl text-[var(--color-text-muted)]">
-            Tres personajes avanzan automáticamente en un paisaje ilustrado. Pulsa espacio o toca una vez para saltar los obstáculos dentro de una ventana amplia.
-          </p>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Carrera de sacos
+            </h1>
+            <p className="text-lg text-[var(--color-text-muted)]">
+              Toca <strong>Comenzar</strong> y después toca <strong>Saltar</strong>.
+            </p>
+          </div>
         </header>
 
-        <section aria-labelledby="settings-title" className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)] sm:p-8">
-          <h2 id="settings-title" className="text-3xl font-bold">Configura la actividad</h2>
-          <div className="mt-5 grid gap-6 lg:grid-cols-2">
+        <section
+          aria-labelledby="race-title"
+          className="flex min-h-[28rem] flex-1 flex-col rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-2 shadow-[var(--shadow-card)] sm:p-3"
+        >
+          <h2 id="race-title" className="sr-only">
+            Zona de carrera
+          </h2>
+
+          <RaceScene
+            progress={snapshot.position}
+            state={snapshot.state}
+            isJumping={snapshot.jumping}
+            nextObstacle={nextObstacle}
+            assistanceWindow={assistanceSettings[assistance].window}
+          />
+
+          <div
+            className="sr-only"
+            role="progressbar"
+            aria-label="Progreso de la carrera"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+          />
+
+          <div className="mt-5">
+            {snapshot.state === "idle" ? (
+              <button
+                type="button"
+                onClick={startRace}
+                className="min-h-20 w-full rounded-2xl bg-[var(--color-primary)] px-8 py-4 text-2xl font-bold text-[var(--color-primary-contrast)] hover:bg-[var(--color-primary-hover)]"
+              >
+                Comenzar
+              </button>
+            ) : null}
+
+            {snapshot.state === "playing" ? (
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <button
+                  type="button"
+                  onClick={emitAction}
+                  className="min-h-24 rounded-2xl bg-[var(--color-primary)] px-8 py-4 text-3xl font-bold text-[var(--color-primary-contrast)] hover:bg-[var(--color-primary-hover)]"
+                >
+                  Saltar
+                </button>
+                <button
+                  type="button"
+                  onClick={emitPause}
+                  className="min-h-16 rounded-2xl border-3 border-[var(--color-primary)] px-7 py-3 text-xl font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
+                >
+                  Pausar
+                </button>
+              </div>
+            ) : null}
+
+            {snapshot.state === "paused" ? (
+              <button
+                type="button"
+                onClick={emitPause}
+                className="min-h-20 w-full rounded-2xl bg-[var(--color-primary)] px-8 py-4 text-2xl font-bold text-[var(--color-primary-contrast)] hover:bg-[var(--color-primary-hover)]"
+              >
+                Continuar
+              </button>
+            ) : null}
+
+            {snapshot.state === "completed" ? (
+              <button
+                type="button"
+                onClick={startRace}
+                className="min-h-20 w-full rounded-2xl bg-[var(--color-primary)] px-8 py-4 text-2xl font-bold text-[var(--color-primary-contrast)] hover:bg-[var(--color-primary-hover)]"
+              >
+                Volver a jugar
+              </button>
+            ) : null}
+          </div>
+
+          <p
+            aria-live="polite"
+            aria-atomic="true"
+            className={`mt-4 text-center text-xl font-bold ${
+              snapshot.state === "idle" ? "sr-only" : ""
+            }`}
+          >
+            {snapshot.message}
+          </p>
+        </section>
+
+        <details
+          ref={optionsRef}
+          className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]"
+        >
+          <summary className="min-h-14 cursor-pointer px-5 py-3 text-xl font-bold text-[var(--color-primary)] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-focus)]">
+            Opciones
+          </summary>
+          <div className="grid gap-6 border-t border-[var(--color-border)] p-5 md:grid-cols-2">
             <fieldset>
-              <legend className="text-xl font-bold">Entrada</legend>
+              <legend className="text-xl font-bold">Cómo jugar</legend>
               <div className="mt-3 grid gap-3">
                 {inputModes.map((inputMode) => (
-                  <button key={inputMode.mode} type="button" aria-pressed={mode === inputMode.mode} onClick={() => setMode(inputMode.mode)} className={`min-h-14 rounded-xl border-4 px-5 text-left font-bold ${mode === inputMode.mode ? "border-[var(--color-primary)] bg-[#e0f2fe]" : "border-[var(--color-border)] hover:bg-[var(--color-surface-muted)]"}`}>
+                  <button
+                    key={inputMode.mode}
+                    type="button"
+                    aria-pressed={mode === inputMode.mode}
+                    onClick={() => setMode(inputMode.mode)}
+                    className={`min-h-14 rounded-xl border-3 px-5 text-left font-bold ${
+                      mode === inputMode.mode
+                        ? "border-[var(--color-primary)] bg-[#e0f2fe]"
+                        : "border-[var(--color-border)]"
+                    }`}
+                  >
                     {inputMode.label}
                   </button>
                 ))}
               </div>
             </fieldset>
+
             <fieldset>
-              <legend className="text-xl font-bold">Ventana de salto</legend>
+              <legend className="text-xl font-bold">Ritmo</legend>
               <div className="mt-3 grid gap-3">
-                {(Object.keys(assistanceLabels) as AssistanceLevel[]).map((level) => (
-                  <button key={level} type="button" aria-pressed={assistance === level} onClick={() => setAssistance(level)} className={`min-h-14 rounded-xl border-4 px-5 text-left font-bold ${assistance === level ? "border-[var(--color-primary)] bg-[#e0f2fe]" : "border-[var(--color-border)] hover:bg-[var(--color-surface-muted)]"}`}>
-                    {assistanceLabels[level]} · ventana {assistanceSettings[level].window}%
+                {(Object.keys(paceLabels) as AssistanceLevel[]).map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    aria-pressed={assistance === level}
+                    onClick={() => setAssistance(level)}
+                    className={`min-h-14 rounded-xl border-3 px-5 text-left font-bold ${
+                      assistance === level
+                        ? "border-[var(--color-primary)] bg-[#e0f2fe]"
+                        : "border-[var(--color-border)]"
+                    }`}
+                  >
+                    {paceLabels[level]}
                   </button>
                 ))}
               </div>
             </fieldset>
+
+            <div className="md:col-span-2">
+              <button
+                type="button"
+                aria-pressed={soundEnabled}
+                onClick={toggleSound}
+                className="min-h-14 w-full rounded-xl border-3 border-[var(--color-primary)] px-5 font-bold text-[var(--color-primary)]"
+              >
+                {soundEnabled ? "Silenciar música" : "Activar música"}
+              </button>
+            </div>
           </div>
-          <div className="mt-6 flex flex-col gap-4 rounded-2xl border-2 border-[var(--color-border)] bg-[var(--color-surface-muted)] p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-xl font-bold">Música opcional</h3>
-              <p className="mt-1 text-[var(--color-text-muted)]">
-                La melodía y los efectos se generan en el navegador. Todos los avisos también aparecen escritos.
-              </p>
-            </div>
-            <button
-              type="button"
-              aria-pressed={soundEnabled}
-              onClick={toggleSound}
-              className="min-h-14 shrink-0 rounded-xl border-4 border-[var(--color-primary)] bg-[var(--color-surface)] px-6 font-bold text-[var(--color-primary)] hover:bg-[var(--color-background)]"
-            >
-              {soundEnabled ? "Silenciar música" : "Activar música"}
-            </button>
-          </div>
-        </section>
-
-        <section aria-labelledby="race-title" className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)] sm:p-10">
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="mb-2 text-base font-semibold text-[var(--color-primary)]">Competencia de juego del saco</p>
-                <h2 id="race-title" className="text-3xl font-bold">Avance: {progress}%</h2>
-              </div>
-              <span className="rounded-full bg-[var(--color-surface-muted)] px-5 py-2 text-lg font-bold">
-                {snapshot.state === "playing" ? "En carrera" : snapshot.state === "paused" ? "Pausado" : snapshot.state === "completed" ? "Llegada" : "Listo"} · Música {soundEnabled ? "activa" : "silenciada"}
-              </span>
-            </div>
-
-            <div>
-              <div className="mb-2 flex justify-between text-base font-semibold"><span>Progreso de la carrera</span><span>{progress}%</span></div>
-              <div role="progressbar" aria-label={`${progress}% de carrera completada`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} className="h-5 overflow-hidden rounded-full bg-[var(--color-surface-muted)]"><div className="h-full rounded-full bg-[var(--color-primary)] transition-[width]" style={{ width: `${progress}%` }} /></div>
-            </div>
-
-            <RaceScene
-              progress={snapshot.position}
-              state={snapshot.state}
-              isJumping={isJumping}
-              nextObstacle={nextObstacle}
-              assistanceWindow={assistanceSettings[assistance].window}
-            />
-
-            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-              <button type="button" onClick={startRace} className="min-h-16 rounded-2xl bg-[var(--color-primary)] px-8 text-xl font-bold text-[var(--color-primary-contrast)] hover:bg-[var(--color-primary-hover)]">{snapshot.state === "completed" ? "Reiniciar carrera" : "Comenzar carrera"}</button>
-              <button type="button" onClick={emitAction} disabled={snapshot.state !== "playing"} className="min-h-16 rounded-2xl border-4 border-[var(--color-primary)] px-8 text-xl font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50">{mode === "hand" ? "Saltar con mano" : "Saltar"}</button>
-              <button type="button" onClick={emitPause} disabled={snapshot.state === "idle" || snapshot.state === "completed"} className="min-h-16 rounded-2xl border-4 border-[var(--color-primary)] px-8 text-xl font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50">{snapshot.state === "paused" ? "Reanudar" : "Pausar"}</button>
-            </div>
-
-            <div aria-live="polite" aria-atomic="true" className="rounded-xl border border-[var(--color-success)] bg-[var(--color-success-surface)] p-5 text-lg font-semibold text-[var(--color-success)]"><span aria-hidden="true" className="mr-2">✓</span>{snapshot.message}</div>
-            <dl className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-xl border border-[var(--color-border)] p-4"><dt className="text-base text-[var(--color-text-muted)]">Saltos</dt><dd className="text-3xl font-bold">{snapshot.jumps}</dd></div>
-              <div className="rounded-xl border border-[var(--color-border)] p-4"><dt className="text-base text-[var(--color-text-muted)]">Obstáculo siguiente</dt><dd className="text-3xl font-bold">{nextObstacle ? `${nextObstacle}%` : "Meta"}</dd></div>
-              <div className="rounded-xl border border-[var(--color-border)] p-4"><dt className="text-base text-[var(--color-text-muted)]">Regla</dt><dd className="text-lg font-bold">Sin eliminación</dd></div>
-            </dl>
-            <p className="text-lg text-[var(--color-text-muted)]">{inputFeedback}</p>
-          </div>
-        </section>
-
-        <footer className="border-t border-[var(--color-border)] pt-5 text-base text-[var(--color-text-muted)]"><p>El personaje es una representación visual. La actividad no realiza evaluación física ni clínica.</p></footer>
+        </details>
       </div>
     </main>
   );

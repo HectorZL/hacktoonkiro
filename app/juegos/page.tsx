@@ -211,7 +211,7 @@ export default function CompetitionLobbyPage() {
               Solo el cuidador necesita una cuenta. Los participantes entran usando sus perfiles y comparten este dispositivo.
             </p>
             <Link
-              href="/perfiles"
+              href="/login"
               className="mt-6 inline-flex min-h-14 items-center rounded-xl bg-[var(--color-primary)] px-6 font-bold text-[var(--color-primary-contrast)] no-underline"
             >
               Ir al acceso del cuidador

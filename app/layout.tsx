@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Juegos accesibles",
-  description: "Una experiencia de juego simple y accesible.",
+  title: "MENTE ACTIVA",
+  description: "UNA EXPERIENCIA ACCESIBLE PARA PRACTICAR ATENCIÓN, MEMORIA Y ORIENTACIÓN.",
 };
 
 export const viewport: Viewport = {
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body>
         <a className="skip-link" href="#main-content">
           Saltar al contenido principal

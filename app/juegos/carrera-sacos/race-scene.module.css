@@ -70,31 +70,6 @@
   bottom: 12.5%;
 }
 
-.hud {
-  position: absolute;
-  z-index: 20;
-  top: 1rem;
-  right: 1rem;
-  left: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.5rem;
-  color: var(--color-text);
-  font-size: 0.875rem;
-  font-weight: 800;
-}
-
-.hud span,
-.racerName,
-.nextObstacle span {
-  border: 2px solid var(--color-border);
-  border-radius: 999px;
-  background: var(--color-surface);
-  padding: 0.25rem 0.75rem;
-  box-shadow: var(--shadow-card);
-}
-
 .coin {
   position: absolute;
   z-index: 4;
@@ -122,16 +97,6 @@
 
 .nextObstacle {
   filter: drop-shadow(0 0 0.7rem var(--color-focus));
-}
-
-.nextObstacle span {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  width: max-content;
-  transform: translate(-50%, -0.25rem);
-  font-size: 0.75rem;
-  font-weight: 800;
 }
 
 .finish {
@@ -175,23 +140,6 @@
   filter: drop-shadow(0 0.45rem 0.25rem rgb(31 41 51 / 0.25));
 }
 
-.racerName {
-  position: absolute;
-  z-index: 2;
-  bottom: 92%;
-  left: 50%;
-  width: max-content;
-  transform: translateX(-50%);
-  font-size: clamp(0.65rem, 1.5vw, 0.85rem);
-  font-weight: 800;
-}
-
-.playerName {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-primary-contrast);
-}
-
 .running {
   animation: sack-run 480ms ease-in-out infinite;
 }
@@ -213,10 +161,8 @@
   z-index: 5;
   bottom: 0;
   height: 12.5%;
-  overflow: hidden;
   border-inline: 4px dashed var(--color-success);
   background: var(--color-success-surface);
-  color: transparent;
   opacity: 0.38;
   pointer-events: none;
 }
@@ -270,11 +216,6 @@
     min-height: 28rem;
   }
 
-  .hud {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
   .mountains {
     bottom: 40%;
   }
@@ -294,6 +235,11 @@
   .redRacer {
     bottom: 13%;
   }
+}
+
+.scene {
+  height: clamp(18rem, calc(100dvh - 25rem), 34rem);
+  min-height: clamp(18rem, calc(100dvh - 25rem), 34rem);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -320,14 +266,6 @@
 }
 
 @media (forced-colors: active) {
-  .hud span,
-  .racerName,
-  .nextObstacle span {
-    border: 2px solid CanvasText;
-    background: Canvas;
-    color: CanvasText;
-  }
-
   .jumpWindow {
     border-color: Highlight;
     background: transparent;

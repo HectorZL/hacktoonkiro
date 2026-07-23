@@ -30,7 +30,16 @@ function inputDescription(input: GameInput) {
   if (input.type === "pause") {
     return `Pausa recibida desde ${input.source}.`;
   }
-  return `Posición de mano recibida: ${Math.round(input.x * 100)}%, ${Math.round(input.y * 100)}%.`;
+  if (input.type === "reject") {
+    return "Gesto de no recibido. Mostramos la siguiente opción.";
+  }
+  if (input.type === "repeat") {
+    return "Gesto de repetición recibido.";
+  }
+  if (input.type === "position") {
+    return `Posición de mano recibida: ${Math.round(input.x * 100)}%, ${Math.round(input.y * 100)}%.`;
+  }
+  return "Entrada recibida.";
 }
 
 export default function InputDemoPage() {

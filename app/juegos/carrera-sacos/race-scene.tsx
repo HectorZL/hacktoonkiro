@@ -50,7 +50,7 @@ export function RaceScene({
   const active = state === "playing";
   const paused = state === "paused";
   const completed = state === "completed";
-  const sceneLabel = `Carrera ilustrada. Tu corredor está en ${Math.round(progress)} por ciento. El rival rojo está en ${Math.round(redProgress)} por ciento y el rival morado en ${Math.round(purpleProgress)} por ciento.`;
+  const sceneLabel = `Carrera ilustrada. Has recorrido ${Math.round(progress)} por ciento.`;
 
   return (
     <div
@@ -65,11 +65,6 @@ export function RaceScene({
       <div aria-hidden="true" className={`${styles.layer} ${styles.ground}`} />
       <div aria-hidden="true" className={`${styles.laneLine} ${styles.laneLineTop}`} />
       <div aria-hidden="true" className={`${styles.laneLine} ${styles.laneLineMiddle}`} />
-
-      <div aria-hidden="true" className={styles.hud}>
-        <span>Tu progreso: {Math.round(progress)}%</span>
-        <span>{nextObstacle === undefined ? "Meta a la vista" : `Próximo salto: ${Math.max(0, Math.round(nextObstacle - progress))}%`}</span>
-      </div>
 
       {coinPositions.map((coin) => {
         const left = toScreenPosition(coin, progress);
@@ -95,16 +90,21 @@ export function RaceScene({
         if (left < -12 || left > 112) {
           return null;
         }
-        const isNext = obstacle === nextObstacle;
         return (
           <div
             key={obstacle}
             aria-hidden="true"
-            className={`${styles.obstacleWrap} ${isNext ? styles.nextObstacle : ""}`}
+            className={`${styles.obstacleWrap} ${
+              obstacle === nextObstacle ? styles.nextObstacle : ""
+            }`}
             style={{ left: `${left}%` }}
           >
-            {isNext ? <span>Salta aquí</span> : null}
-            <Image alt="" src="/games/carrera-sacos/objects/hay-bale.svg" width={150} height={115} />
+            <Image
+              alt=""
+              src="/games/carrera-sacos/objects/hay-bale.svg"
+              width={150}
+              height={115}
+            />
           </div>
         );
       })}
@@ -126,10 +126,11 @@ export function RaceScene({
         className={`${styles.racer} ${styles.purpleRacer}`}
         style={{ left: `${purpleScreenPosition}%` }}
       >
-        <span className={styles.racerName}>Rival morado</span>
         <Image
           alt=""
-          className={`${styles.sprite} ${active ? styles.running : ""} ${isNearObstacle(purpleProgress) ? styles.jumping : ""} ${completed ? styles.celebrating : ""}`}
+          className={`${styles.sprite} ${active ? styles.running : ""} ${
+            isNearObstacle(purpleProgress) ? styles.jumping : ""
+          } ${completed ? styles.celebrating : ""}`}
           src="/games/carrera-sacos/characters/rival-purple.svg"
           width={220}
           height={260}
@@ -142,10 +143,11 @@ export function RaceScene({
         className={`${styles.racer} ${styles.redRacer}`}
         style={{ left: `${redScreenPosition}%` }}
       >
-        <span className={styles.racerName}>Rival rojo</span>
         <Image
           alt=""
-          className={`${styles.sprite} ${active ? styles.runningAlt : ""} ${isNearObstacle(redProgress) ? styles.jumping : ""} ${completed ? styles.celebrating : ""}`}
+          className={`${styles.sprite} ${active ? styles.runningAlt : ""} ${
+            isNearObstacle(redProgress) ? styles.jumping : ""
+          } ${completed ? styles.celebrating : ""}`}
           src="/games/carrera-sacos/characters/rival-red.svg"
           width={220}
           height={260}
@@ -153,11 +155,16 @@ export function RaceScene({
         />
       </div>
 
-      <div aria-hidden="true" className={`${styles.racer} ${styles.playerRacer}`} style={{ left: "28%" }}>
-        <span className={`${styles.racerName} ${styles.playerName}`}>Tú</span>
+      <div
+        aria-hidden="true"
+        className={`${styles.racer} ${styles.playerRacer}`}
+        style={{ left: "28%" }}
+      >
         <Image
           alt=""
-          className={`${styles.sprite} ${active ? styles.running : ""} ${isJumping ? styles.jumping : ""} ${completed ? styles.celebrating : ""}`}
+          className={`${styles.sprite} ${active ? styles.running : ""} ${
+            isJumping ? styles.jumping : ""
+          } ${completed ? styles.celebrating : ""}`}
           src="/games/carrera-sacos/characters/player.svg"
           width={220}
           height={260}
@@ -170,12 +177,14 @@ export function RaceScene({
           aria-hidden="true"
           className={styles.jumpWindow}
           style={{
-            left: `${clamp(toScreenPosition(nextObstacle - assistanceWindow, progress), 0, 100)}%`,
+            left: `${clamp(
+              toScreenPosition(nextObstacle - assistanceWindow, progress),
+              0,
+              100,
+            )}%`,
             width: `${clamp(assistanceWindow * 3.3, 12, 62)}%`,
           }}
-        >
-          Ventana amplia de salto
-        </div>
+        />
       ) : null}
     </div>
   );

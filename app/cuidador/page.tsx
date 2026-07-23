@@ -48,6 +48,7 @@ const gameLabels: Record<GameSessionKey, string> = {
   "carrera-sacos": "Carrera de sacos",
   trompo: "Lanzamiento del trompo",
   "jardin-virtual": "El Jardín Virtual",
+  "mente-activa": "Mente Activa",
 };
 const weekdayLabels = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
 
