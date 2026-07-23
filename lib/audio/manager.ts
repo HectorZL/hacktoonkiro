@@ -1,9 +1,22 @@
-export type AudioAlert = "start" | "care" | "scene" | "pause" | "resume" | "jump" | "finish";
+export type AudioAlert =
+  | "start"
+  | "care"
+  | "scene"
+  | "pause"
+  | "resume"
+  | "jump"
+  | "finish"
+  | "tick"
+  | "correct"
+  | "incorrect"
+  | "turn"
+  | "winner";
 
 type Tone = {
   frequency: number;
   duration: number;
   delay: number;
+  volume?: number;
 };
 
 const alertTones: Record<AudioAlert, Tone[]> = {
@@ -21,6 +34,25 @@ const alertTones: Record<AudioAlert, Tone[]> = {
   jump: [
     { frequency: 523, duration: 0.09, delay: 0 },
     { frequency: 698, duration: 0.13, delay: 0.09 },
+  ],
+  tick: [{ frequency: 880, duration: 0.05, delay: 0, volume: 0.035 }],
+  correct: [
+    { frequency: 523, duration: 0.1, delay: 0 },
+    { frequency: 659, duration: 0.16, delay: 0.12 },
+  ],
+  incorrect: [
+    { frequency: 247, duration: 0.12, delay: 0 },
+    { frequency: 175, duration: 0.2, delay: 0.14 },
+  ],
+  turn: [
+    { frequency: 392, duration: 0.1, delay: 0 },
+    { frequency: 523, duration: 0.16, delay: 0.12 },
+  ],
+  winner: [
+    { frequency: 523, duration: 0.1, delay: 0 },
+    { frequency: 659, duration: 0.1, delay: 0.12 },
+    { frequency: 784, duration: 0.1, delay: 0.24 },
+    { frequency: 1047, duration: 0.25, delay: 0.36 },
   ],
   finish: [
     { frequency: 523, duration: 0.12, delay: 0 },
@@ -170,7 +202,7 @@ export class AudioManager {
       oscillator.type = "sine";
       oscillator.frequency.setValueAtTime(tone.frequency, start);
       gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(0.08, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(tone.volume ?? 0.08, start + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.0001, end);
       oscillator.connect(gain);
       gain.connect(context.destination);

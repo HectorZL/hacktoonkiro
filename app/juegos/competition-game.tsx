@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AudioManager, type AudioAlert } from "@/lib/audio/manager";
+import { isSpeechSupported, queueInSpanish, speakInSpanish, stopSpeaking } from "@/lib/accessibility/speech";
 import {
   clearCompetitionSetup,
   readCompetitionSetup,
@@ -55,6 +57,8 @@ const impostorWords = [
   "viaje",
 ];
 
+const speechPreferenceStorageKey = "mente-activa:speech-enabled";
+
 type GamePhase = "loading" | "missing" | "handoff" | "secret" | "playing" | "result" | "finished";
 
 type CompetitionGameProps = {
@@ -95,7 +99,13 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
   const [triviaLoading, setTriviaLoading] = useState(false);
   const [outcome, setOutcome] = useState("");
   const [saveStatus, setSaveStatus] = useState("Preparando el resultado final…");
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [speechEnabled, setSpeechEnabled] = useState(false);
+  const [speechReady, setSpeechReady] = useState(false);
+  const audioRef = useRef<AudioManager | null>(null);
   const saveStartedRef = useRef(false);
+  const outcomeAnnouncementRef = useRef("");
+  const winnerAnnouncementRef = useRef("");
 
   const game = competitionGameMeta[gameKey];
   const currentPlayer = setup?.players[playerIndex] ?? null;
@@ -110,6 +120,94 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
   const currentAnimal = animalPrompts[currentChallengeIndex % animalPrompts.length];
   const currentCharade = charadePrompts[currentChallengeIndex % charadePrompts.length];
   const winner = setup ? getWinner(setup.players, scores) : null;
+
+  const playSound = useCallback((alert: AudioAlert) => {
+    if (!soundEnabled) {
+      return;
+    }
+    const audio = audioRef.current;
+    if (!audio) {
+      return;
+    }
+    audio.setEnabled(true);
+    audio.play(alert);
+  }, [soundEnabled]);
+
+  const announce = useCallback((text: string, queue = false) => {
+    if (!speechEnabled || !isSpeechSupported()) {
+      return;
+    }
+    if (queue) {
+      queueInSpanish(text);
+    } else {
+      speakInSpanish(text);
+    }
+  }, [speechEnabled]);
+
+  useEffect(() => {
+    const audio = new AudioManager();
+    audioRef.current = audio;
+    return () => {
+      audio.dispose();
+      audioRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const preferenceTimer = window.setTimeout(() => {
+      let enabled = true;
+      try {
+        const storedPreference = window.localStorage.getItem(speechPreferenceStorageKey);
+        enabled = storedPreference === null || storedPreference === "true";
+      } catch {
+        // La voz queda activada por defecto si el navegador bloquea el almacenamiento.
+      }
+      setSpeechEnabled(enabled);
+      setSpeechReady(true);
+    }, 0);
+    return () => window.clearTimeout(preferenceTimer);
+  }, []);
+
+  useEffect(() => {
+    if (!speechReady || !speechEnabled || phase !== "handoff" || !currentPlayer) {
+      return;
+    }
+    const announcementTimer = window.setTimeout(() => {
+      announce(`Turno de ${currentPlayer.name}. Pasa el dispositivo.`, true);
+    }, 0);
+    return () => window.clearTimeout(announcementTimer);
+  }, [announce, currentPlayer, phase, speechEnabled, speechReady]);
+
+  useEffect(() => {
+    if (!speechReady || !speechEnabled || phase !== "result" || !outcome) {
+      return;
+    }
+    const outcomeKey = `${setup?.id ?? "partida"}-${round}-${playerIndex}-${outcome}`;
+    if (outcomeAnnouncementRef.current === outcomeKey) {
+      return;
+    }
+    outcomeAnnouncementRef.current = outcomeKey;
+    const announcementTimer = window.setTimeout(() => {
+      announce(outcome);
+    }, 0);
+    return () => window.clearTimeout(announcementTimer);
+  }, [announce, outcome, phase, playerIndex, round, setup?.id, speechEnabled, speechReady]);
+
+  useEffect(() => {
+    if (!setup || !winner || phase !== "finished") {
+      return;
+    }
+    const winnerKey = `${setup.id}-${winner.id}-${gameKey}`;
+    if (winnerAnnouncementRef.current === winnerKey) {
+      return;
+    }
+    winnerAnnouncementRef.current = winnerKey;
+    playSound("winner");
+    const announcementTimer = window.setTimeout(() => {
+      announce(`Ganó ${winner.name} en el juego de ${game.title}.`);
+    }, 0);
+    return () => window.clearTimeout(announcementTimer);
+  }, [announce, game.title, gameKey, phase, playSound, setup, winner]);
 
   useEffect(() => {
     let active = true;
@@ -174,15 +272,17 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
 
     const timer = window.setTimeout(() => {
       if (timeLeft <= 1) {
+        playSound("incorrect");
         setTimeLeft(0);
         setOutcome("Se terminó el tiempo. Puedes continuar con la siguiente ronda.");
         setPhase("result");
       } else {
+        playSound("tick");
         setTimeLeft(timeLeft - 1);
       }
     }, 1000);
     return () => window.clearTimeout(timer);
-  }, [gameKey, phase, setup, timeLeft]);
+  }, [gameKey, phase, playSound, setup, timeLeft]);
 
   useEffect(() => {
     if (phase !== "finished" || !setup || saveStartedRef.current) {
@@ -201,6 +301,7 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
   }, [phase, scores, setup]);
 
   function beginPrivateTurn() {
+    playSound("turn");
     setSelectedTriviaOption(null);
     setTriviaCorrect(null);
     setOutcome("");
@@ -235,6 +336,7 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
     }
 
     const correct = optionIndex === currentQuestion.correctOption;
+    playSound(correct ? "correct" : "incorrect");
     setSelectedTriviaOption(optionIndex);
     setTriviaCorrect(correct);
     if (correct) {
@@ -251,6 +353,7 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
       return;
     }
 
+    playSound(success ? "correct" : "incorrect");
     if (success) {
       setScores((current) => addPoint(current, currentPlayer.id, 1));
       setOutcome(`¡El grupo adivinó! ${currentPlayer.name} suma un punto.`);
@@ -266,6 +369,7 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
     }
 
     if (found) {
+      playSound("correct");
       setScores((current) =>
         setup.players.reduce(
           (nextScores, player) => (player.id === impostorPlayer.id ? nextScores : addPoint(nextScores, player.id, 1)),
@@ -274,6 +378,7 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
       );
       setOutcome(`¡Encontraron al impostor! Era ${impostorPlayer.name}. Cada persona que lo descubrió recibe un punto.`);
     } else {
+      playSound("incorrect");
       setScores((current) => addPoint(current, impostorPlayer.id, 2));
       setOutcome(`El impostor ganó esta ronda. Era ${impostorPlayer.name} y recibe dos puntos.`);
     }
@@ -509,6 +614,44 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
               ))}
           </ol>
           <p className="mt-5 border-t border-[var(--color-border)] pt-4 text-sm text-[var(--color-text-muted)]">El cuidador confirma las respuestas de mímica, animales y charadas.</p>
+          <div className="mt-5 grid gap-3 border-t border-[var(--color-border)] pt-5">
+            <button
+              type="button"
+              aria-pressed={soundEnabled}
+              onClick={() => {
+                const nextEnabled = !soundEnabled;
+                setSoundEnabled(nextEnabled);
+                audioRef.current?.setEnabled(nextEnabled);
+                if (nextEnabled) {
+                  audioRef.current?.play("turn");
+                }
+              }}
+              className="min-h-14 rounded-xl border-3 border-[var(--color-primary)] px-4 font-bold text-[var(--color-primary)]"
+            >
+              {soundEnabled ? "Silenciar sonidos" : "Activar sonidos"}
+            </button>
+            <button
+              type="button"
+              aria-pressed={speechEnabled}
+              onClick={() => {
+                const nextEnabled = !speechEnabled;
+                setSpeechEnabled(nextEnabled);
+                try {
+                  window.localStorage.setItem(speechPreferenceStorageKey, String(nextEnabled));
+                } catch {
+                  // La partida sigue funcionando si no se puede guardar la preferencia.
+                }
+                if (nextEnabled) {
+                  speakInSpanish("Lector de voz activado.");
+                } else {
+                  stopSpeaking();
+                }
+              }}
+              className="min-h-14 rounded-xl border-3 border-[var(--color-primary)] px-4 font-bold text-[var(--color-primary)]"
+            >
+              {speechEnabled ? "Desactivar lector de voz" : "Activar lector de voz"}
+            </button>
+          </div>
         </aside>
       </div>
     </main>
