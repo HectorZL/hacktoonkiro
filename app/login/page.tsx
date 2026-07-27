@@ -3,9 +3,24 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AppNavigation } from "@/app/components/app-navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type AuthMode = "sign-in" | "sign-up";
+
+function getSafeDestination() {
+  if (typeof window === "undefined") {
+    return "/juegos";
+  }
+
+  const requestedDestination = new URLSearchParams(window.location.search).get("next");
+  const allowedPrefixes = ["/juegos", "/perfil", "/perfiles", "/cuidador"];
+  const isAllowedDestination = allowedPrefixes.some(
+    (prefix) => requestedDestination === prefix || requestedDestination?.startsWith(`${prefix}/`),
+  );
+
+  return isAllowedDestination && requestedDestination ? requestedDestination : "/juegos";
+}
 
 export default function CaregiverLoginPage() {
   const router = useRouter();
@@ -34,7 +49,7 @@ export default function CaregiverLoginPage() {
         return;
       }
       if (data.session?.user) {
-        router.replace("/juegos");
+        router.replace(getSafeDestination());
         return;
       }
       setCheckingSession(false);
@@ -88,7 +103,7 @@ export default function CaregiverLoginPage() {
       }
 
       await ensureCaregiverProfile(result.data.user.id, email);
-      router.push("/juegos");
+      router.push(getSafeDestination());
     } catch (authError) {
       setError(authError instanceof Error ? authError.message : "No se pudo completar el acceso.");
     } finally {
@@ -109,10 +124,10 @@ export default function CaregiverLoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-5 py-8 sm:px-8 sm:py-12">
-      <div className="w-full max-w-5xl">
+    <main className="min-h-screen px-[clamp(1rem,3vw,3rem)] py-[clamp(1.25rem,3vw,3rem)]">
+      <AppNavigation />
+      <div className="mx-auto w-full max-w-5xl">
         <header className="mb-8 text-center">
-          <Link href="/" className="font-semibold text-[var(--color-primary)] underline">← Volver al inicio</Link>
           <p className="mt-6 font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">Acceso de gestión</p>
           <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-6xl">Entrar como cuidador</h1>
           <p className="mx-auto mt-4 max-w-3xl text-xl text-[var(--color-text-muted)] sm:text-2xl">
@@ -174,7 +189,7 @@ export default function CaregiverLoginPage() {
                 </button>
               </form>
             ) : (
-              <div className="mt-7 rounded-2xl border-2 border-[var(--color-warning)] bg-[var(--color-warning-surface)] p-5 text-[#78350f]">
+              <div className="mt-7 rounded-2xl border-2 border-[var(--color-warning)] bg-[var(--color-warning-surface)] p-5 text-[var(--color-warning-contrast)]">
                 <h3 className="text-2xl font-bold">Supabase no está configurado</h3>
                 <p className="mt-3 text-lg">Puedes probar la sala en modo demo. Para usar cuentas reales, completa las variables de Supabase en `.env.local`.</p>
                 <button type="button" onClick={enterDemo} className="mt-5 min-h-16 w-full rounded-2xl bg-[var(--color-primary)] px-5 text-xl font-bold text-white">Entrar al modo demo</button>
@@ -182,7 +197,7 @@ export default function CaregiverLoginPage() {
             )}
 
             {notice ? <p role="status" className="mt-5 rounded-xl border border-[var(--color-success)] bg-[var(--color-success-surface)] p-4 font-semibold text-[var(--color-success)]">{notice}</p> : null}
-            {error ? <p role="alert" className="mt-5 rounded-xl border border-[#991b1b] bg-[#fee2e2] p-4 font-semibold text-[#7f1d1d]">{error}</p> : null}
+            {error ? <p role="alert" className="mt-5 rounded-xl border border-[var(--color-danger)] bg-[var(--color-danger-surface)] p-4 font-semibold text-[var(--color-danger-contrast)]">{error}</p> : null}
           </div>
 
           <aside className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-6 sm:p-9" aria-labelledby="login-benefits-title">

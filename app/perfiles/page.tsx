@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { AppNavigation } from "@/app/components/app-navigation";
 import { setActivePlayer } from "@/lib/sessions/manager";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type AvatarKey = "sun" | "flower" | "leaf" | "star";
-type AuthMode = "sign-in" | "sign-up";
 
 type Player = {
   id: string;
@@ -52,10 +51,8 @@ export default function ProfilesPage() {
   const [selectedPlayerId, setSelectedPlayerId] = useState(defaultPlayers[0].id);
   const [newPlayerName, setNewPlayerName] = useState("");
   const [newAvatarKey, setNewAvatarKey] = useState<AvatarKey>("sun");
-  const [authMode, setAuthMode] = useState<AuthMode>("sign-in");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [createPlayerOpen, setCreatePlayerOpen] = useState(false);
   const [demoReady, setDemoReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -176,59 +173,6 @@ export default function ProfilesPage() {
     }
   }, [demoReady, players, supabaseConfigured]);
 
-  async function ensureCaregiverProfile(caregiverId: string, caregiverEmail: string) {
-    const supabase = createClient();
-    const { error: profileError } = await supabase.from("profiles").upsert(
-      {
-        id: caregiverId,
-        auth_user_id: caregiverId,
-        display_name: caregiverEmail.split("@")[0] || "Cuidador",
-        role: "caregiver",
-      },
-      { onConflict: "id" },
-    );
-
-    if (profileError) {
-      throw profileError;
-    }
-  }
-
-  async function handleAuth(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitting(true);
-    setError("");
-    setNotice("");
-
-    try {
-      const supabase = createClient();
-      const result =
-        authMode === "sign-in"
-          ? await supabase.auth.signInWithPassword({ email, password })
-          : await supabase.auth.signUp({ email, password });
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      if (!result.data.user) {
-        throw new Error("Supabase no devolvió un usuario.");
-      }
-
-      if (authMode === "sign-up" && !result.data.session) {
-        setNotice("Cuenta creada. Revisa tu correo si Supabase solicita confirmación antes de iniciar sesión.");
-      } else {
-        await ensureCaregiverProfile(result.data.user.id, email);
-        setUserId(result.data.user.id);
-        await loadSupabasePlayers(result.data.user.id);
-        setNotice("Sesión iniciada. Ya puedes administrar los perfiles.");
-      }
-    } catch (authError) {
-      setError(authError instanceof Error ? authError.message : "No se pudo completar la autenticación.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   async function handleSignOut() {
     if (!supabaseConfigured) {
       return;
@@ -294,6 +238,7 @@ export default function ProfilesPage() {
       }
 
       setNewPlayerName("");
+      setCreatePlayerOpen(false);
       setNotice(`Perfil de ${name} creado correctamente.`);
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "No se pudo crear el perfil.");
@@ -302,27 +247,80 @@ export default function ProfilesPage() {
     }
   }
 
+  async function handleDeletePlayer(playerId: string, playerName: string) {
+    if (!window.confirm(`¿Estás seguro de eliminar el perfil de ${playerName}? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+    setNotice("");
+
+    try {
+      if (!supabaseConfigured) {
+        setPlayers((currentPlayers) => {
+          const filtered = currentPlayers.filter((player) => player.id !== playerId);
+          if (filtered.length > 0 && selectedPlayerId === playerId) {
+            setSelectedPlayerId(filtered[0].id);
+          } else if (filtered.length === 0) {
+            setSelectedPlayerId("");
+          }
+          return filtered;
+        });
+      } else {
+        if (!userId) {
+          throw new Error("Inicia sesión como cuidador antes de eliminar un perfil.");
+        }
+
+        const supabase = createClient();
+
+        // Eliminar configuraciones del jugador
+        const { error: settingsError } = await supabase
+          .from("player_settings")
+          .delete()
+          .eq("player_id", playerId);
+
+        if (settingsError) {
+          throw settingsError;
+        }
+
+        // Eliminar el jugador
+        const { error: playerError } = await supabase
+          .from("caregiver_players")
+          .delete()
+          .eq("id", playerId)
+          .eq("caregiver_id", userId);
+
+        if (playerError) {
+          throw playerError;
+        }
+
+        await loadSupabasePlayers(userId);
+
+        // Actualizar selección si el jugador eliminado estaba seleccionado
+        setPlayers((currentPlayers) => {
+          if (currentPlayers.length > 0 && selectedPlayerId === playerId) {
+            setSelectedPlayerId(currentPlayers[0].id);
+          } else if (currentPlayers.length === 0) {
+            setSelectedPlayerId("");
+          }
+          return currentPlayers;
+        });
+      }
+
+      setNotice(`Perfil de ${playerName} eliminado correctamente.`);
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "No se pudo eliminar el perfil.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
-    <main className="min-h-screen px-5 py-8 sm:px-8 sm:py-12">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+    <main className="min-h-screen px-[clamp(1rem,3vw,3rem)] py-[clamp(1.25rem,3vw,3rem)]">
+      <AppNavigation />
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
         <header className="flex flex-col gap-3">
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/cuidador"
-              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
-            >
-              Ver actividad del cuidador
-            </Link>
-            <Link
-              href="/juegos"
-              className="w-fit rounded-xl bg-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary-contrast)] no-underline hover:bg-[var(--color-primary-hover)]"
-            >
-              Abrir sala de juegos
-            </Link>
-            <Link className="w-fit font-semibold text-[var(--color-primary)] underline" href="/">
-              ← Volver al inicio
-            </Link>
-          </div>
           <p className="font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
             Task 2 · Perfiles compartidos
           </p>
@@ -334,10 +332,10 @@ export default function ProfilesPage() {
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
+        <div className={createPlayerOpen ? "grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(24rem,0.85fr)]" : "grid gap-8"}>
           <section
             aria-labelledby="players-title"
-            className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)] sm:p-8"
+            className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-7 shadow-[var(--shadow-card)] sm:p-10 lg:p-12"
           >
             <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -348,15 +346,26 @@ export default function ProfilesPage() {
                   Toca una tarjeta para seleccionar un perfil.
                 </p>
               </div>
-              {userId ? (
+              <div className="flex flex-wrap gap-3">
                 <button
                   type="button"
-                  onClick={handleSignOut}
-                  className="min-h-12 rounded-xl border-2 border-[var(--color-primary)] px-5 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
+                  aria-expanded={createPlayerOpen}
+                  aria-controls="create-player-panel"
+                  onClick={() => setCreatePlayerOpen((currentOpen) => !currentOpen)}
+                  className="min-h-12 rounded-xl bg-[var(--color-primary)] px-5 font-bold text-[var(--color-primary-contrast)] hover:bg-[var(--color-primary-hover)]"
                 >
-                  Cerrar sesión
+                  {createPlayerOpen ? "Cerrar" : "+ Nuevo jugador"}
                 </button>
-              ) : null}
+                {userId ? (
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="min-h-12 rounded-xl border-2 border-[var(--color-primary)] px-5 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
+                  >
+                    Cerrar sesión
+                  </button>
+                ) : null}
+              </div>
             </div>
 
             {loading ? (
@@ -373,28 +382,38 @@ export default function ProfilesPage() {
                   const avatar = getAvatar(player.avatarKey);
                   const selected = player.id === selectedPlayerId;
                   return (
-                    <div key={player.id} role="listitem">
+                    <div key={player.id} role="listitem" className="relative">
                       <button
                         type="button"
                         aria-pressed={selected}
                         onClick={() => setSelectedPlayerId(player.id)}
-                        className={`min-h-36 w-full rounded-2xl border-4 p-5 text-left transition-colors ${
+                        className={`min-h-44 w-full rounded-2xl border-4 p-6 text-left transition-colors ${
                           selected
                             ? "border-[var(--color-primary)] bg-[#e0f2fe]"
                             : "border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-muted)]"
                         }`}
                       >
                         <span className="flex items-center gap-4">
-                          <span role="img" aria-label={`Avatar ${avatar.label}`} className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#fef3c7] text-4xl">
+                          <span role="img" aria-label={`Avatar ${avatar.label}`} className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-[#fef3c7] text-5xl">
                             {avatar.symbol}
                           </span>
                           <span>
-                            <span className="block text-2xl font-bold">{player.name}</span>
+                            <span className="block text-3xl font-bold">{player.name}</span>
                             <span className="mt-1 block text-base text-[var(--color-text-muted)]">
                               {selected ? "Perfil seleccionado" : "Seleccionar perfil"}
                             </span>
                           </span>
                         </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePlayer(player.id, player.name)}
+                        disabled={submitting}
+                        aria-label={`Eliminar perfil de ${player.name}`}
+                        className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#991b1b] bg-[#fee2e2] text-xl font-bold text-[#7f1d1d] hover:bg-[#fecaca] disabled:cursor-not-allowed disabled:opacity-50"
+                        title="Eliminar perfil"
+                      >
+                        ×
                       </button>
                     </div>
                   );
@@ -413,120 +432,79 @@ export default function ProfilesPage() {
             ) : null}
           </section>
 
-          <aside className="flex flex-col gap-6">
-            <section
-              aria-labelledby="create-title"
-              className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)]"
-            >
-              <h2 id="create-title" className="text-2xl font-bold">Crear jugador</h2>
-              <p className="mt-2 text-[var(--color-text-muted)]">
-                Solo pedimos un nombre y un avatar opcional.
-              </p>
-              <form className="mt-5 flex flex-col gap-4" onSubmit={handleCreatePlayer}>
-                <label className="flex flex-col gap-2 font-semibold" htmlFor="player-name">
-                  Nombre del jugador
-                  <input
-                    id="player-name"
-                    value={newPlayerName}
-                    onChange={(event) => setNewPlayerName(event.target.value)}
-                    className="min-h-12 rounded-xl border-2 border-[var(--color-border)] bg-[var(--color-surface)] px-4"
-                    maxLength={120}
-                    placeholder="Ejemplo: Ana"
-                  />
-                </label>
-                <fieldset>
-                  <legend className="font-semibold">Avatar opcional</legend>
-                  <div className="mt-2 grid grid-cols-4 gap-2">
-                    {avatarOptions.map((avatar) => (
-                      <label key={avatar.key} className="cursor-pointer text-center">
-                        <input
-                          type="radio"
-                          name="avatar"
-                          value={avatar.key}
-                          checked={newAvatarKey === avatar.key}
-                          onChange={() => setNewAvatarKey(avatar.key)}
-                          className="sr-only"
-                        />
-                        <span
-                          className={`flex min-h-14 items-center justify-center rounded-xl border-2 text-2xl ${
-                            newAvatarKey === avatar.key
-                              ? "border-[var(--color-primary)] bg-[#e0f2fe]"
-                              : "border-[var(--color-border)]"
-                          }`}
-                        >
-                          {avatar.symbol}
-                        </span>
-                        <span className="mt-1 block text-sm">{avatar.label}</span>
-                      </label>
-                    ))}
+          {createPlayerOpen ? (
+            <aside className="flex flex-col gap-6">
+              <section
+                id="create-player-panel"
+                aria-labelledby="create-title"
+                className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)]"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 id="create-title" className="text-2xl font-bold">Nuevo jugador</h2>
+                    <p className="mt-2 text-[var(--color-text-muted)]">
+                      Solo pedimos un nombre y un avatar opcional.
+                    </p>
                   </div>
-                </fieldset>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="min-h-14 rounded-xl bg-[var(--color-primary)] px-5 text-lg font-bold text-[var(--color-primary-contrast)] hover:bg-[var(--color-primary-hover)] disabled:cursor-wait disabled:opacity-60"
-                >
-                  {submitting ? "Guardando…" : "Crear perfil"}
-                </button>
-              </form>
-            </section>
-
-            <section
-              aria-labelledby="auth-title"
-              className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)]"
-            >
-              <h2 id="auth-title" className="text-2xl font-bold">Acceso del cuidador</h2>
-              {supabaseConfigured ? (
-                <form className="mt-4 flex flex-col gap-4" onSubmit={handleAuth}>
-                  <label className="flex flex-col gap-2 font-semibold" htmlFor="caregiver-email">
-                    Correo electrónico
+                  <button
+                    type="button"
+                    onClick={() => setCreatePlayerOpen(false)}
+                    aria-label="Cerrar formulario de nuevo jugador"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-border)] text-xl font-bold hover:bg-[var(--color-surface-muted)]"
+                  >
+                    ×
+                  </button>
+                </div>
+                <form className="mt-5 flex flex-col gap-4" onSubmit={handleCreatePlayer}>
+                  <label className="flex flex-col gap-2 font-semibold" htmlFor="player-name">
+                    Nombre del jugador
                     <input
-                      id="caregiver-email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
+                      id="player-name"
+                      value={newPlayerName}
+                      onChange={(event) => setNewPlayerName(event.target.value)}
                       className="min-h-12 rounded-xl border-2 border-[var(--color-border)] bg-[var(--color-surface)] px-4"
+                      maxLength={120}
+                      placeholder="Ejemplo: Ana"
                     />
                   </label>
-                  <label className="flex flex-col gap-2 font-semibold" htmlFor="caregiver-password">
-                    Contraseña
-                    <input
-                      id="caregiver-password"
-                      type="password"
-                      autoComplete={authMode === "sign-in" ? "current-password" : "new-password"}
-                      required
-                      minLength={6}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      className="min-h-12 rounded-xl border-2 border-[var(--color-border)] bg-[var(--color-surface)] px-4"
-                    />
-                  </label>
+                  <fieldset>
+                    <legend className="font-semibold">Avatar opcional</legend>
+                    <div className="mt-2 grid grid-cols-4 gap-2">
+                      {avatarOptions.map((avatar) => (
+                        <label key={avatar.key} className="cursor-pointer text-center">
+                          <input
+                            type="radio"
+                            name="avatar"
+                            value={avatar.key}
+                            checked={newAvatarKey === avatar.key}
+                            onChange={() => setNewAvatarKey(avatar.key)}
+                            className="sr-only"
+                          />
+                          <span
+                            className={`flex min-h-14 items-center justify-center rounded-xl border-2 text-2xl ${
+                              newAvatarKey === avatar.key
+                                ? "border-[var(--color-primary)] bg-[#e0f2fe]"
+                                : "border-[var(--color-border)]"
+                            }`}
+                          >
+                            {avatar.symbol}
+                          </span>
+                          <span className="mt-1 block text-sm">{avatar.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="min-h-12 rounded-xl border-2 border-[var(--color-primary)] px-5 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)] disabled:opacity-60"
+                    className="min-h-14 rounded-xl bg-[var(--color-primary)] px-5 text-lg font-bold text-[var(--color-primary-contrast)] hover:bg-[var(--color-primary-hover)] disabled:cursor-wait disabled:opacity-60"
                   >
-                    {authMode === "sign-in" ? "Iniciar sesión" : "Crear cuenta"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAuthMode(authMode === "sign-in" ? "sign-up" : "sign-in")}
-                    className="min-h-12 text-left font-semibold text-[var(--color-primary)] underline"
-                  >
-                    {authMode === "sign-in"
-                      ? "Soy un cuidador nuevo: crear cuenta"
-                      : "Ya tengo cuenta: iniciar sesión"}
+                    {submitting ? "Guardando…" : "Crear perfil"}
                   </button>
                 </form>
-              ) : (
-                <p className="mt-4 rounded-xl border border-[#92400e] bg-[#fef3c7] p-4 text-base text-[#78350f]">
-                  Supabase todavía no está configurado. Estás usando el modo demo local; los perfiles se guardan solo en este navegador.
-                </p>
-              )}
-            </section>
-          </aside>
+              </section>
+            </aside>
+          ) : null}
         </div>
 
         {notice ? (

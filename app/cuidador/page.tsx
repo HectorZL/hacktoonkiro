@@ -9,6 +9,7 @@ import {
   type StoredGameSession,
 } from "@/lib/sessions/manager";
 import type { InputMode } from "@/lib/input/types";
+import { AppNavigation } from "@/app/components/app-navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type Period = "week" | "month";
@@ -364,11 +365,9 @@ export default function CaregiverDashboardPage() {
 
   return (
     <main className="min-h-screen px-5 py-8 sm:px-8 sm:py-12">
+      <AppNavigation />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <header className="flex flex-col gap-3">
-          <Link className="w-fit font-semibold text-[var(--color-primary)] underline" href="/perfiles">
-            ← Volver a perfiles
-          </Link>
           <p className="font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
             Task 11 · Panel del cuidador
           </p>

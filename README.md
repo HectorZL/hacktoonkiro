@@ -167,6 +167,30 @@ npm run lint
 npm run build
 ```
 
+### Acceso de prueba seguro
+
+Para evaluar la aplicación no se incluyen correos ni contraseñas en el repositorio:
+
+**Opción 1: Modo Demo (sin configuración)**
+- No requiere configuración de Supabase.
+- Los perfiles se guardan localmente en el navegador.
+- Accede directamente a `/juegos` o `/perfiles`.
+
+**Opción 2: Con Supabase (recomendado para producción)**
+1. Configura `.env.local` a partir de `.env.example`; nunca subas ese archivo.
+2. Crea un usuario de evaluación desde Supabase Dashboard → Authentication → Users, usando un correo y una contraseña que solo conozca el equipo evaluador.
+3. En `/login`, inicia sesión con esas credenciales. La pantalla de Juegos será la entrada predeterminada después del acceso.
+4. Para Vercel, configura las variables en Project Settings → Environment Variables y crea el usuario directamente en el proyecto Supabase de evaluación.
+
+Consulta [docs/deployment-checklist.md](./docs/deployment-checklist.md) para la verificación de producción. **No copies credenciales reales en README, commits, tickets ni capturas.**
+
+**Flujo completo de prueba:**
+1. Ve a `/login` y crea una cuenta o inicia sesión
+2. Ve a `/perfiles` para añadir jugadores (María, José, Elena, etc.)
+3. Ve a `/juegos` para seleccionar participantes y comenzar una partida
+4. Elige un juego (Trivia, Animales, Impostor o Charadas)
+5. Configura rondas y comienza
+
 ## Repositorio
 
 El proyecto se publica en [github.com/HectorZL/hacktoonkiro](https://github.com/HectorZL/hacktoonkiro).

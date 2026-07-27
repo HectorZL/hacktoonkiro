@@ -1,22 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --color-background: #f7f3ea;
-  --color-surface: #fffdf8;
-  --color-surface-muted: #eee8dc;
-  --color-text: #1f2933;
-  --color-text-muted: #52606d;
-  --color-primary: #155e75;
-  --color-primary-hover: #104c5f;
+  --color-background: #edf4f5;
+  --color-surface: #ffffff;
+  --color-surface-muted: #e2ecef;
+  --color-text: #102a43;
+  --color-text-muted: #334e68;
+  --color-primary: #075985;
+  --color-primary-hover: #064e6b;
   --color-primary-contrast: #ffffff;
+  --color-primary-surface: #e0f2fe;
   --color-success: #166534;
   --color-success-surface: #dcfce7;
   --color-warning: #92400e;
+  --color-warning-contrast: #78350f;
   --color-warning-surface: #fef3c7;
-  --color-border: #b8c2cc;
+  --color-danger: #991b1b;
+  --color-danger-contrast: #7f1d1d;
+  --color-danger-surface: #fee2e2;
+  --color-border: #78909c;
   --color-focus: #b45309;
   --radius-card: 1.25rem;
-  --shadow-card: 0 1rem 2.5rem rgb(31 41 51 / 0.08);
+  --shadow-card: 0 1rem 2.5rem rgb(16 42 67 / 0.12);
 }
 
 * {
@@ -40,9 +45,18 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 1.25rem;
   line-height: 1.6;
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   text-rendering: optimizeLegibility;
+}
+
+/* Las pantallas de gestión aprovechan el viewport sin quedar encerradas en una columna estrecha. */
+.max-w-6xl,
+.max-w-5xl {
+  max-width: 96vw;
+}
+
+.max-w-4xl {
+  max-width: 92vw;
 }
 
 button,
@@ -110,6 +124,32 @@ textarea:focus-visible {
 ::selection {
   background: #fcd34d;
   color: var(--color-text);
+}
+
+@media (min-width: 900px) and (max-width: 1400px) {
+  body {
+    font-size: 1.15rem;
+  }
+
+  .text-6xl {
+    font-size: 3rem;
+  }
+
+  .text-5xl {
+    font-size: 2.5rem;
+  }
+
+  .text-4xl {
+    font-size: 2rem;
+  }
+
+  .text-3xl {
+    font-size: 1.5rem;
+  }
+
+  .text-2xl {
+    font-size: 1.25rem;
+  }
 }
 
 @media (pointer: coarse) {

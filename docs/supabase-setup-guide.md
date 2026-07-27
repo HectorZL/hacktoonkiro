@@ -142,19 +142,16 @@ Ahora los usuarios pueden registrarse e iniciar sesión inmediatamente.
 
 2. Ve a [http://localhost:3000/login](http://localhost:3000/login)
 
-3. **Crea una cuenta de prueba:**
-   - Email: `cuidador@test.com`
-   - Contraseña: `Test123456` (mínimo 6 caracteres)
-   - Click en "Soy un cuidador nuevo: crear cuenta"
+3. **Crea un usuario temporal para la prueba** desde Supabase Dashboard → **Authentication → Users → Add user**. Usa credenciales administradas por el equipo evaluador y no las copies al repositorio, a la documentación ni a las capturas.
+4. Ve a `/login` e inicia sesión con ese usuario.
+5. Si configuraste confirmación de email:
+   - Revisa tu correo y confirma la cuenta.
+   - Vuelve a `/login` e inicia sesión.
 
-4. Si configuraste confirmación de email:
-   - Revisa tu correo y confirma la cuenta
-   - Vuelve a `/login` e inicia sesión
+6. Si NO configuraste confirmación de email:
+   - Deberías ser redirigido automáticamente a `/juegos`.
 
-5. Si NO configuraste confirmación de email:
-   - Deberías ser redirigido automáticamente a `/juegos`
-
-6. **Verifica que funciona:**
+7. **Verifica que funciona:**
    - Ve a `/perfiles`
    - Crea un jugador (ej: "María")
    - Ve a Supabase → Table Editor → `caregiver_players`

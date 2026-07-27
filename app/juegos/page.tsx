@@ -9,6 +9,7 @@ import {
   type CompetitionPlayer,
 } from "@/lib/competition/types";
 import { createCompetitionSetup, saveCompetitionSetup } from "@/lib/competition/manager";
+import { AppNavigation } from "@/app/components/app-navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 const localPlayersStorageKey = "hacktoonkiro:players";
@@ -80,26 +81,25 @@ export default function CompetitionLobbyPage() {
 
       try {
         const supabase = createClient();
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        if (userError) {
-          throw userError;
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          throw sessionError;
         }
 
-        if (!userData.user) {
+        if (!sessionData.session?.user) {
           if (active) {
-            setUserId(null);
-            setPlayers([]);
-            setSelectedIds([]);
-            setSource(null);
             setLoading(false);
+            router.replace("/login?next=/juegos");
           }
           return;
         }
 
+        const userData = sessionData.session.user;
+
         const { data, error: playersError } = await supabase
           .from("caregiver_players")
           .select("id, player_name, avatar_key")
-          .eq("caregiver_id", userData.user.id)
+          .eq("caregiver_id", userData.id)
           .order("created_at", { ascending: true });
 
         if (playersError) {
@@ -113,7 +113,7 @@ export default function CompetitionLobbyPage() {
         }));
 
         if (active) {
-          setUserId(userData.user.id);
+          setUserId(userData.id);
           setPlayers(loadedPlayers);
           setSelectedIds(loadedPlayers.map((player) => player.id));
           setSource("supabase");
@@ -131,7 +131,7 @@ export default function CompetitionLobbyPage() {
     return () => {
       active = false;
     };
-  }, [supabaseConfigured]);
+  }, [router, supabaseConfigured]);
 
   const selectedPlayers = useMemo(
     () => players.filter((player) => selectedIds.includes(player.id)),
@@ -176,19 +176,9 @@ export default function CompetitionLobbyPage() {
 
   return (
     <main className="min-h-screen px-5 py-8 sm:px-8 sm:py-12">
+      <AppNavigation />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <header className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/cuidador"
-              className="w-fit rounded-xl border-2 border-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-surface-muted)]"
-            >
-              Ver actividad del cuidador
-            </Link>
-            <Link className="w-fit font-semibold text-[var(--color-primary)] underline" href="/perfiles">
-              Administrar perfiles
-            </Link>
-          </div>
           <p className="font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
             Partidas compartidas
           </p>
@@ -204,10 +194,10 @@ export default function CompetitionLobbyPage() {
           </p>
         ) : requiresSignIn ? (
           <section className="rounded-[var(--radius-card)] border-2 border-[var(--color-warning)] bg-[var(--color-warning-surface)] p-6 sm:p-8" aria-labelledby="login-required-title">
-            <h2 id="login-required-title" className="text-3xl font-bold text-[#78350f]">
+            <h2 id="login-required-title" className="text-3xl font-bold text-[var(--color-warning-contrast)]">
               Inicia sesión para dirigir una partida
             </h2>
-            <p className="mt-3 max-w-3xl text-lg text-[#78350f]">
+            <p className="mt-3 max-w-3xl text-lg text-[var(--color-warning-contrast)]">
               Solo el cuidador necesita una cuenta. Los participantes entran usando sus perfiles y comparten este dispositivo.
             </p>
             <Link
@@ -220,12 +210,12 @@ export default function CompetitionLobbyPage() {
         ) : (
           <>
             {source === "demo" ? (
-              <p role="status" className="rounded-xl border border-[var(--color-warning)] bg-[var(--color-warning-surface)] p-4 font-semibold text-[#78350f]">
+              <p role="status" className="rounded-xl border border-[var(--color-warning)] bg-[var(--color-warning-surface)] p-4 font-semibold text-[var(--color-warning-contrast)]">
                 Modo demo local: puedes probar la partida sin conectar Supabase. En producción, el cuidador inicia sesión para guardar la información.
               </p>
             ) : null}
             {error ? (
-              <p role="alert" className="rounded-xl border border-[#991b1b] bg-[#fee2e2] p-4 font-semibold text-[#7f1d1d]">
+              <p role="alert" className="rounded-xl border border-[var(--color-danger)] bg-[var(--color-danger-surface)] p-4 font-semibold text-[var(--color-danger-contrast)]">
                 {error}
               </p>
             ) : null}
@@ -255,7 +245,7 @@ export default function CompetitionLobbyPage() {
                           onClick={() => setGameKey(key)}
                           className={`min-h-36 rounded-2xl border-4 p-5 text-left transition-colors ${
                             selected
-                              ? "border-[var(--color-primary)] bg-[#e0f2fe]"
+                              ? "border-[var(--color-primary)] bg-[var(--color-primary-surface)]"
                               : "border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-muted)]"
                           }`}
                         >
@@ -303,12 +293,12 @@ export default function CompetitionLobbyPage() {
                               onClick={() => togglePlayer(player.id)}
                               className={`flex min-h-20 w-full items-center justify-between gap-4 rounded-2xl border-3 px-5 py-4 text-left ${
                                 selected
-                                  ? "border-[var(--color-primary)] bg-[#e0f2fe]"
+                                  ? "border-[var(--color-primary)] bg-[var(--color-primary-surface)]"
                                   : "border-[var(--color-border)] bg-[var(--color-surface)]"
                               }`}
                             >
                               <span className="flex items-center gap-3">
-                                <span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-full bg-[#fef3c7] text-2xl">{selected ? "✓" : "○"}</span>
+                                <span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-warning-surface)] text-2xl">{selected ? "✓" : "○"}</span>
                                 <span className="text-xl font-bold">{player.name}</span>
                               </span>
                               <span className="text-base font-semibold text-[var(--color-text-muted)]">{selected ? "Jugará" : "No jugará"}</span>
