@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AppNavigation } from "@/app/components/app-navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type AuthMode = "sign-in" | "sign-up";
@@ -124,8 +123,7 @@ export default function CaregiverLoginPage() {
   }
 
   return (
-    <main className="min-h-screen px-[clamp(1rem,3vw,3rem)] py-[clamp(1.25rem,3vw,3rem)]">
-      <AppNavigation />
+    <main className="min-h-screen px-[clamp(1rem,3vw,3rem)] py-[clamp(1.5rem,5vw,4rem)]">
       <div className="mx-auto w-full max-w-5xl">
         <header className="mb-8 text-center">
           <p className="mt-6 font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">Acceso de gestión</p>
