@@ -5,6 +5,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AudioManager } from "@/lib/audio/manager";
 import { InputController } from "@/lib/input/controller";
 import type { GameInput, InputMode } from "@/lib/input/types";
+import {
+  finishGameSession,
+  getActivePlayer,
+  startGameSession,
+  type ActiveGameSession,
+} from "@/lib/sessions/manager";
 import { RaceScene } from "./race-scene";
 
 type RaceState = "idle" | "playing" | "paused" | "completed";
@@ -56,20 +62,54 @@ export default function CarreraSacosPage() {
   const audioRef = useRef<AudioManager | null>(null);
   const optionsRef = useRef<HTMLDetailsElement | null>(null);
   const previousRaceStateRef = useRef<RaceState>("idle");
+  const sessionRef = useRef<ActiveGameSession | null>(null);
 
   if (audioRef.current === null) {
     audioRef.current = new AudioManager();
   }
 
+  useEffect(() => {
+    return () => {
+      const session = sessionRef.current;
+      sessionRef.current = null;
+      if (session) {
+        void finishGameSession(session);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (snapshot.state !== "completed") {
+      return;
+    }
+
+    const session = sessionRef.current;
+    sessionRef.current = null;
+    if (session) {
+      void finishGameSession(session);
+    }
+  }, [snapshot.state]);
+
   const startRace = useCallback(() => {
     optionsRef.current?.removeAttribute("open");
+    const previousSession = sessionRef.current;
+    if (previousSession) {
+      void finishGameSession(previousSession);
+    }
+
+    sessionRef.current = startGameSession({
+      player: getActivePlayer(),
+      gameKey: "carrera-sacos",
+      inputMode: mode,
+      assistanceLevel: assistance,
+    });
     audioRef.current?.play("start");
     setSnapshot({
       ...createInitialSnapshot(),
       state: "playing",
       message: "¡Vamos! Toca Saltar cuando se acerque la paca.",
     });
-  }, []);
+  }, [assistance, mode]);
 
   const togglePause = useCallback(() => {
     if (snapshot.state === "playing") {

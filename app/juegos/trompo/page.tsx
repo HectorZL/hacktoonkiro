@@ -4,6 +4,12 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { InputController } from "@/lib/input/controller";
 import type { GameInput, InputMode } from "@/lib/input/types";
+import {
+  finishGameSession,
+  getActivePlayer,
+  startGameSession,
+  type ActiveGameSession,
+} from "@/lib/sessions/manager";
 
 type TopState = "idle" | "aiming" | "spinning" | "paused" | "completed";
 type AssistanceLevel = "basic" | "guided" | "assisted";
@@ -53,16 +59,50 @@ export default function TrompoPage() {
   const [snapshot, setSnapshot] = useState<TopSnapshot>(createInitialSnapshot);
   const controllerRef = useRef<InputController | null>(null);
   const optionsRef = useRef<HTMLDetailsElement | null>(null);
+  const sessionRef = useRef<ActiveGameSession | null>(null);
+
+  useEffect(() => {
+    return () => {
+      const session = sessionRef.current;
+      sessionRef.current = null;
+      if (session) {
+        void finishGameSession(session);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (snapshot.state !== "completed") {
+      return;
+    }
+
+    const session = sessionRef.current;
+    sessionRef.current = null;
+    if (session) {
+      void finishGameSession(session);
+    }
+  }, [snapshot.state]);
 
   const startGame = useCallback(() => {
     optionsRef.current?.removeAttribute("open");
+    const previousSession = sessionRef.current;
+    if (previousSession) {
+      void finishGameSession(previousSession);
+    }
+
+    sessionRef.current = startGameSession({
+      player: getActivePlayer(),
+      gameKey: "trompo",
+      inputMode: mode,
+      assistanceLevel: assistance,
+    });
     setSnapshot({
       ...createInitialSnapshot(),
       state: "aiming",
       round: 1,
       message: "Toca Lanzar cuando la marca esté en la zona verde.",
     });
-  }, []);
+  }, [assistance, mode]);
 
   const togglePause = useCallback(() => {
     setSnapshot((current) => {

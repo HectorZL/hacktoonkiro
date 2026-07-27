@@ -18,14 +18,14 @@ type PlayerSummary = {
 };
 type DashboardSession = {
   id: string;
-  playerId: string;
-  playerName: string;
+  playerIds: string[];
+  playerNames: string[];
   gameKey: GameSessionKey;
   startedAt: string;
   endedAt: string;
   durationSeconds: number;
-  inputMode: InputMode;
-  assistanceLevel: AssistanceLevel;
+  inputMode?: InputMode;
+  assistanceLevel?: AssistanceLevel;
 };
 
 type SupabasePlayerRow = {
@@ -42,6 +42,17 @@ type SupabaseSessionRow = {
   input_mode: InputMode;
   assistance_level: AssistanceLevel;
 };
+type SupabaseCompetitionScoreRow = {
+  player_id: string;
+  player_name: string;
+};
+type SupabaseCompetitionSessionRow = {
+  id: string;
+  game_key: GameSessionKey;
+  started_at: string;
+  ended_at: string;
+  competition_scores?: SupabaseCompetitionScoreRow[];
+};
 
 const localPlayersStorageKey = "hacktoonkiro:players";
 const gameLabels: Record<GameSessionKey, string> = {
@@ -49,6 +60,10 @@ const gameLabels: Record<GameSessionKey, string> = {
   trompo: "Lanzamiento del trompo",
   "jardin-virtual": "El Jardín Virtual",
   "mente-activa": "Mente Activa",
+  "trivia-ecuador": "Trivia de Ecuador",
+  animales: "Animales y mímica",
+  impostor: "Impostor",
+  charadas: "Charadas",
 };
 const weekdayLabels = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
 
@@ -77,8 +92,8 @@ function readLocalPlayers(): PlayerSummary[] {
 function mapLocalSession(session: StoredGameSession): DashboardSession {
   return {
     id: session.id,
-    playerId: session.player.id,
-    playerName: session.player.name,
+    playerIds: [session.player.id],
+    playerNames: [session.player.name],
     gameKey: session.gameKey,
     startedAt: session.startedAt,
     endedAt: session.endedAt,
@@ -125,9 +140,11 @@ function formatMinutes(durationSeconds: number) {
 function mergePlayers(players: PlayerSummary[], sessions: DashboardSession[]) {
   const merged = new Map(players.map((player) => [player.id, player]));
   sessions.forEach((session) => {
-    if (!merged.has(session.playerId)) {
-      merged.set(session.playerId, { id: session.playerId, name: session.playerName });
-    }
+    session.playerIds.forEach((playerId, index) => {
+      if (!merged.has(playerId)) {
+        merged.set(playerId, { id: playerId, name: session.playerNames[index] ?? "Jugador" });
+      }
+    });
   });
   return Array.from(merged.values());
 }
@@ -187,7 +204,7 @@ export default function CaregiverDashboardPage() {
 
     const playerRows = (playerData ?? []) as SupabasePlayerRow[];
     const playerMap = new Map(playerRows.map((player) => [player.id, player.player_name]));
-    let dashboardSessions: DashboardSession[] = [];
+    let individualSessions: DashboardSession[] = [];
 
     if (playerRows.length > 0) {
       const { data: sessionData, error: sessionError } = await supabase
@@ -208,10 +225,10 @@ export default function CaregiverDashboardPage() {
         return;
       }
 
-      dashboardSessions = ((sessionData ?? []) as SupabaseSessionRow[]).map((session) => ({
+      individualSessions = ((sessionData ?? []) as SupabaseSessionRow[]).map((session) => ({
         id: session.id,
-        playerId: session.player_id,
-        playerName: playerMap.get(session.player_id) ?? "Jugador",
+        playerIds: [session.player_id],
+        playerNames: [playerMap.get(session.player_id) ?? "Jugador"],
         gameKey: session.game_key,
         startedAt: session.started_at,
         endedAt: session.ended_at,
@@ -221,7 +238,50 @@ export default function CaregiverDashboardPage() {
       }));
     }
 
-    setPlayers(playerRows.map((player) => ({ id: player.id, name: player.player_name })));
+    const { data: competitionData, error: competitionError } = await supabase
+      .from("competition_sessions")
+      .select("id, game_key, started_at, ended_at, competition_scores(player_id, player_name)")
+      .eq("caregiver_id", userData.user.id)
+      .order("started_at", { ascending: false })
+      .limit(500);
+
+    if (competitionError) {
+      setError(competitionError.message);
+      setLoading(false);
+      return;
+    }
+
+    const competitionRows = (competitionData ?? []) as unknown as SupabaseCompetitionSessionRow[];
+    const competitionSessions: DashboardSession[] = competitionRows.map((session) => {
+      const participants = Array.isArray(session.competition_scores)
+        ? session.competition_scores
+        : [];
+      const startedAtMs = Date.parse(session.started_at);
+      const endedAtMs = Date.parse(session.ended_at);
+
+      return {
+        id: session.id,
+        playerIds: participants.map((player) => player.player_id),
+        playerNames: participants.length > 0
+          ? participants.map((player) => player.player_name)
+          : ["Partida grupal"],
+        gameKey: session.game_key,
+        startedAt: session.started_at,
+        endedAt: session.ended_at,
+        durationSeconds: Number.isFinite(startedAtMs) && Number.isFinite(endedAtMs)
+          ? Math.max(0, Math.round((endedAtMs - startedAtMs) / 1000))
+          : 0,
+      };
+    });
+
+    const dashboardSessions = [...individualSessions, ...competitionSessions].sort(
+      (first, second) => Date.parse(second.startedAt) - Date.parse(first.startedAt),
+    );
+
+    setPlayers(mergePlayers(
+      playerRows.map((player) => ({ id: player.id, name: player.player_name })),
+      dashboardSessions,
+    ));
     setSessions(dashboardSessions);
     setSource("supabase");
     setLoading(false);
@@ -260,9 +320,9 @@ export default function CaregiverDashboardPage() {
   const playerRows = useMemo(
     () =>
       players.map((player) => {
-        const playerSessions = periodSessions.filter((session) => session.playerId === player.id);
+        const playerSessions = periodSessions.filter((session) => session.playerIds.includes(player.id));
         const latestSession = sessions
-          .filter((session) => session.playerId === player.id)
+          .filter((session) => session.playerIds.includes(player.id))
           .sort((first, second) => Date.parse(second.startedAt) - Date.parse(first.startedAt))[0];
         return {
           ...player,
@@ -527,7 +587,7 @@ export default function CaregiverDashboardPage() {
                     <thead>
                       <tr className="border-b-2 border-[var(--color-border)]">
                         <th scope="col" className="p-3">Fecha</th>
-                        <th scope="col" className="p-3">Jugador</th>
+                        <th scope="col" className="p-3">Participantes</th>
                         <th scope="col" className="p-3">Juego</th>
                         <th scope="col" className="p-3">Duración</th>
                       </tr>
@@ -536,7 +596,7 @@ export default function CaregiverDashboardPage() {
                       {periodSessions.slice(0, 10).map((session) => (
                         <tr key={session.id} className="border-b border-[var(--color-border)]">
                           <td className="p-3">{formatDate(session.startedAt)}</td>
-                          <th scope="row" className="p-3">{session.playerName}</th>
+                          <th scope="row" className="p-3">{session.playerNames.join(", ")}</th>
                           <td className="p-3">{gameLabels[session.gameKey] ?? session.gameKey}</td>
                           <td className="p-3">{formatMinutes(session.durationSeconds)}</td>
                         </tr>

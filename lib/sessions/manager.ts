@@ -6,7 +6,11 @@ export type GameSessionKey =
   | "carrera-sacos"
   | "trompo"
   | "jardin-virtual"
-  | "mente-activa";
+  | "mente-activa"
+  | "trivia-ecuador"
+  | "animales"
+  | "impostor"
+  | "charadas";
 export type ActivePlayer = {
   id: string;
   name: string;

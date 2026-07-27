@@ -24,16 +24,16 @@ export default function CaregiverLoginPage() {
     }
 
     let active = true;
-    void createClient().auth.getUser().then(({ data, error: userError }) => {
+    void createClient().auth.getSession().then(({ data, error: sessionError }) => {
       if (!active) {
         return;
       }
-      if (userError) {
-        setError(userError.message);
+      if (sessionError) {
+        setError(sessionError.message);
         setCheckingSession(false);
         return;
       }
-      if (data.user) {
+      if (data.session?.user) {
         router.replace("/juegos");
         return;
       }
