@@ -59,7 +59,8 @@ const impostorWords = [
 
 const speechPreferenceStorageKey = "mente-activa:speech-enabled";
 
-type GamePhase = "loading" | "missing" | "handoff" | "secret" | "playing" | "result" | "finished";
+type GamePhase = "loading" | "missing" | "handoff" | "secret" | "playing" | "vote" | "result" | "finished";
+type ImpostorOutcome = "team" | "impostor" | null;
 
 type CompetitionGameProps = {
   gameKey: CompetitionGameKey;
@@ -95,11 +96,13 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
   const [timeLeft, setTimeLeft] = useState(60);
   const [selectedTriviaOption, setSelectedTriviaOption] = useState<number | null>(null);
   const [triviaCorrect, setTriviaCorrect] = useState<boolean | null>(null);
+  const [impostorOutcome, setImpostorOutcome] = useState<ImpostorOutcome>(null);
   const [triviaQuestions, setTriviaQuestions] = useState<TriviaQuestion[]>([]);
   const [triviaLoading, setTriviaLoading] = useState(false);
   const [outcome, setOutcome] = useState("");
   const [saveStatus, setSaveStatus] = useState("Preparando el resultado final…");
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [musicEnabled, setMusicEnabled] = useState(true);
   const [speechEnabled, setSpeechEnabled] = useState(false);
   const [speechReady, setSpeechReady] = useState(false);
   const audioRef = useRef<AudioManager | null>(null);
@@ -120,6 +123,35 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
   const currentAnimal = animalPrompts[currentChallengeIndex % animalPrompts.length];
   const currentCharade = charadePrompts[currentChallengeIndex % charadePrompts.length];
   const winner = setup ? getWinner(setup.players, scores) : null;
+  const resultCelebration = impostorOutcome === "team"
+    ? {
+        icon: "🎉🔎🏆",
+        title: "¡El equipo encontró al impostor!",
+        message: "La partida termina con una victoria del equipo.",
+      }
+    : impostorOutcome === "impostor"
+      ? {
+          icon: "🕵️🏆✨",
+          title: "¡El impostor sobrevivió!",
+          message: "El impostor gana al mantenerse oculto hasta la última ronda.",
+        }
+      : triviaCorrect === true
+        ? {
+            icon: "🌟😊✨",
+            title: "¡Respuesta genial!",
+            message: "Tu respuesta fue correcta. ¡Sigue así!",
+          }
+        : triviaCorrect === false
+          ? {
+              icon: "💛🙂🌈",
+              title: "¡Buen intento!",
+              message: "Cada respuesta nos ayuda a aprender. ¡Vamos con la siguiente!",
+            }
+          : {
+              icon: "👏😊🎉",
+              title: "¡Buen trabajo, equipo!",
+              message: "La diversión continúa en el próximo turno.",
+            };
 
   const playSound = useCallback((alert: AudioAlert) => {
     if (!soundEnabled) {
@@ -152,6 +184,18 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
       audioRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    const activeGamePhases: GamePhase[] = ["handoff", "secret", "playing", "vote", "result"];
+
+    if (audio && setup && soundEnabled && musicEnabled && activeGamePhases.includes(phase)) {
+      audio.setEnabled(true);
+      audio.startMusic();
+    } else {
+      audio?.stopMusic();
+    }
+  }, [musicEnabled, phase, setup, soundEnabled]);
 
   useEffect(() => {
     const preferenceTimer = window.setTimeout(() => {
@@ -197,17 +241,22 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
     if (!setup || !winner || phase !== "finished") {
       return;
     }
-    const winnerKey = `${setup.id}-${winner.id}-${gameKey}`;
+    const winnerKey = `${setup.id}-${winner.id}-${gameKey}-${impostorOutcome ?? "standard"}`;
     if (winnerAnnouncementRef.current === winnerKey) {
       return;
     }
     winnerAnnouncementRef.current = winnerKey;
     playSound("winner");
     const announcementTimer = window.setTimeout(() => {
-      announce(`Ganó ${winner.name} en el juego de ${game.title}.`);
+      const announcement = gameKey === "impostor"
+        ? impostorOutcome === "team"
+          ? "¡El equipo ganó! Encontraron al impostor."
+          : "¡El impostor ganó! Se mantuvo oculto hasta el final."
+        : `Ganó ${winner.name} en el juego de ${game.title}.`;
+      announce(announcement);
     }, 0);
     return () => window.clearTimeout(announcementTimer);
-  }, [announce, game.title, gameKey, phase, playSound, setup, winner]);
+  }, [announce, game.title, gameKey, impostorOutcome, phase, playSound, setup, winner]);
 
   useEffect(() => {
     let active = true;
@@ -220,6 +269,7 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
 
       setSetup(storedSetup);
       setScores(Object.fromEntries(storedSetup.players.map((player) => [player.id, 0])));
+      setImpostorOutcome(null);
       setTimeLeft(storedSetup.secondsPerTurn);
       setPhase("handoff");
 
@@ -266,16 +316,23 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
   }, [gameKey]);
 
   useEffect(() => {
-    if (phase !== "playing" || !setup || (gameKey !== "animales" && gameKey !== "charadas")) {
+    const usesRoundTimer = gameKey === "animales" || gameKey === "charadas" || gameKey === "impostor";
+    if (phase !== "playing" || !setup || !usesRoundTimer) {
       return;
     }
 
     const timer = window.setTimeout(() => {
       if (timeLeft <= 1) {
-        playSound("incorrect");
         setTimeLeft(0);
-        setOutcome("Se terminó el tiempo. Puedes continuar con la siguiente ronda.");
-        setPhase("result");
+        if (gameKey === "impostor") {
+          playSound("turn");
+          setOutcome("El minuto de pistas terminó. Ahora el grupo debe votar por una persona.");
+          setPhase("vote");
+        } else {
+          playSound("incorrect");
+          setOutcome("Se terminó el tiempo. Puedes continuar con la siguiente ronda.");
+          setPhase("result");
+        }
       } else {
         playSound("tick");
         setTimeLeft(timeLeft - 1);
@@ -321,6 +378,7 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
         setPlayerIndex((current) => current + 1);
         setPhase("handoff");
       } else {
+        setTimeLeft(60);
         setPhase("playing");
       }
       return;
@@ -363,12 +421,18 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
     setPhase("result");
   }
 
-  function resolveImpostor(found: boolean) {
-    if (!setup || !impostorPlayer || phase !== "playing") {
+  function castImpostorVote(votedPlayerId: string) {
+    if (!setup || !impostorPlayer || phase !== "vote") {
       return;
     }
 
-    if (found) {
+    const votedPlayer = setup.players.find((player) => player.id === votedPlayerId);
+    if (!votedPlayer) {
+      return;
+    }
+
+    const foundImpostor = votedPlayer.id === impostorPlayer.id;
+    if (foundImpostor) {
       playSound("correct");
       setScores((current) =>
         setup.players.reduce(
@@ -376,11 +440,18 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
           current,
         ),
       );
-      setOutcome(`¡Encontraron al impostor! Era ${impostorPlayer.name}. Cada persona que lo descubrió recibe un punto.`);
+      setImpostorOutcome("team");
+      setOutcome(`¡El equipo eligió a ${votedPlayer.name} y encontró al impostor! La partida termina con victoria del equipo.`);
     } else {
+      const lastRound = round + 1 >= setup.rounds;
       playSound("incorrect");
       setScores((current) => addPoint(current, impostorPlayer.id, 2));
-      setOutcome(`El impostor ganó esta ronda. Era ${impostorPlayer.name} y recibe dos puntos.`);
+      if (lastRound) {
+        setImpostorOutcome("impostor");
+        setOutcome(`El grupo votó por ${votedPlayer.name}, pero el impostor era ${impostorPlayer.name}. El impostor sobrevivió hasta el final.`);
+      } else {
+        setOutcome(`El grupo votó por ${votedPlayer.name}, pero el impostor era ${impostorPlayer.name}. El impostor gana esta ronda y habrá otra oportunidad.`);
+      }
     }
     setPhase("result");
   }
@@ -392,11 +463,12 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
 
     const lastRound = round + 1 >= setup.rounds;
     if (gameKey === "impostor") {
-      if (lastRound) {
+      if (impostorOutcome === "team" || lastRound) {
         setPhase("finished");
       } else {
         setRound((current) => current + 1);
         setPlayerIndex(0);
+        setTimeLeft(setup.secondsPerTurn);
         setPhase("handoff");
       }
       return;
@@ -556,19 +628,44 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
             {phase === "playing" && isImpostorGame ? (
               <div className="text-center">
                 <span aria-hidden="true" className="text-7xl">🕵️</span>
-                <p className="mt-4 text-xl font-bold text-[var(--color-primary)]">Ronda de pistas</p>
-                <h2 className="mt-2 text-4xl font-bold">¿Quién es el impostor?</h2>
-                <p className="mx-auto mt-5 max-w-2xl text-xl text-[var(--color-text-muted)]">Cada persona puede dar una pista. Cuando el grupo haya votado, el cuidador revela el resultado con uno de estos botones.</p>
+                <p className="mt-4 text-xl font-bold text-[var(--color-primary)]">Ronda de pistas: 1 minuto</p>
+                <h2 className="mt-2 text-4xl font-bold">Descubran al impostor</h2>
+                <p className="mx-auto mt-5 max-w-2xl text-xl text-[var(--color-text-muted)]">Cada persona da una pista breve sin decir la palabra secreta. Cuando termine el tiempo, el grupo votará por una persona.</p>
+                <div className={`mx-auto mt-8 flex h-40 w-40 items-center justify-center rounded-full border-8 ${timeLeft <= 10 ? "border-[var(--color-danger)] text-[var(--color-danger-contrast)]" : "border-[var(--color-primary)] text-[var(--color-primary)]"}`}>
+                  <span className="text-5xl font-black">{formatTime(timeLeft)}</span>
+                </div>
+                <p className="mt-5 text-lg font-semibold" aria-live="polite">Cuando llegue a 0:00 aparecerá la votación.</p>
+              </div>
+            ) : null}
+
+            {phase === "vote" && isImpostorGame ? (
+              <div className="text-center">
+                <span aria-hidden="true" className="text-7xl">🗳️</span>
+                <p className="mt-4 text-xl font-bold text-[var(--color-primary)]">Hora de votar</p>
+                <h2 className="mt-2 text-4xl font-bold">¿A quién vota el grupo?</h2>
+                <p className="mx-auto mt-5 max-w-2xl text-xl text-[var(--color-text-muted)]">El cuidador registra una decisión del grupo. Si eligen al impostor, el equipo gana inmediatamente.</p>
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                  <button type="button" onClick={() => resolveImpostor(true)} className="min-h-20 rounded-2xl bg-[var(--color-success)] px-5 text-2xl font-bold text-white">Encontraron al impostor</button>
-                  <button type="button" onClick={() => resolveImpostor(false)} className="min-h-20 rounded-2xl bg-[#b45309] px-5 text-2xl font-bold text-white">El impostor ganó</button>
+                  {setup.players.map((player) => (
+                    <button
+                      key={player.id}
+                      type="button"
+                      onClick={() => castImpostorVote(player.id)}
+                      className="min-h-20 rounded-2xl border-4 border-[var(--color-primary)] bg-[var(--color-surface)] px-5 text-2xl font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary-surface)]"
+                    >
+                      Votar por {player.name}
+                    </button>
+                  ))}
                 </div>
               </div>
             ) : null}
 
             {phase === "result" ? (
               <div className="text-center">
-                <span aria-hidden="true" className="text-7xl">{triviaCorrect === true ? "🌟" : triviaCorrect === false ? "💛" : "👏"}</span>
+                <div className="celebration-pop" aria-hidden="true">
+                  <span className="celebration-icons">{resultCelebration.icon}</span>
+                </div>
+                <p className="mt-3 text-3xl font-black text-[var(--color-primary)]">{resultCelebration.title}</p>
+                <p className="mt-2 text-xl font-semibold text-[var(--color-text-muted)]">{resultCelebration.message}</p>
                 <h2 className="mt-4 text-4xl font-bold">Resultado de la ronda</h2>
                 <p className="mx-auto mt-5 max-w-3xl text-2xl font-semibold" aria-live="polite">{outcome}</p>
                 {gameKey === "trivia-ecuador" ? (
@@ -579,17 +676,30 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
                   </div>
                 ) : null}
                 <button type="button" onClick={nextTurn} className="mt-8 min-h-20 w-full rounded-2xl bg-[var(--color-primary)] px-6 text-2xl font-bold text-white hover:bg-[var(--color-primary-hover)]">
-                  {isLastRound && (isImpostorGame || isLastPlayer) ? "Ver resultados finales" : "Continuar con la partida"}
+                  {impostorOutcome === "team" || (isLastRound && (isImpostorGame || isLastPlayer)) ? "Ver resultados finales" : "Continuar con la partida"}
                 </button>
               </div>
             ) : null}
 
             {phase === "finished" ? (
               <div className="text-center">
-                <span aria-hidden="true" className="text-7xl">🏆</span>
+                <span aria-hidden="true" className="text-7xl">{isImpostorGame && impostorOutcome === "impostor" ? "🕵️" : "🏆"}</span>
                 <p className="mt-4 text-xl font-bold text-[var(--color-primary)]">Partida terminada</p>
-                <h2 className="mt-2 text-4xl font-bold">¡Muy bien, equipo!</h2>
-                {winner ? <p className="mt-5 text-3xl font-bold">Ganador: {winner.name} con {scores[winner.id] ?? 0} puntos</p> : null}
+                {isImpostorGame ? (
+                  <>
+                    <h2 className="mt-2 text-4xl font-bold">{impostorOutcome === "team" ? "¡El equipo ganó!" : "¡El impostor ganó!"}</h2>
+                    <p className="mt-5 text-2xl font-bold">
+                      {impostorOutcome === "team"
+                        ? `El grupo descubrió a ${impostorPlayer?.name ?? "el impostor"} antes de que terminara la partida.`
+                        : `${impostorPlayer?.name ?? "El impostor"} sobrevivió hasta el final sin ser descubierto.`}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="mt-2 text-4xl font-bold">¡Muy bien, equipo!</h2>
+                    {winner ? <p className="mt-5 text-3xl font-bold">Ganador: {winner.name} con {scores[winner.id] ?? 0} puntos</p> : null}
+                  </>
+                )}
                 <p className="mt-5 text-lg text-[var(--color-text-muted)]">{saveStatus}</p>
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
                   <button type="button" onClick={resetToLobby} className="min-h-16 rounded-2xl bg-[var(--color-primary)] px-5 text-xl font-bold text-white">Preparar otra partida</button>
@@ -629,6 +739,23 @@ export default function CompetitionGame({ gameKey }: CompetitionGameProps) {
               className="min-h-14 rounded-xl border-3 border-[var(--color-primary)] px-4 font-bold text-[var(--color-primary)]"
             >
               {soundEnabled ? "Silenciar sonidos" : "Activar sonidos"}
+            </button>
+            <button
+              type="button"
+              aria-pressed={musicEnabled}
+              onClick={() => {
+                const nextEnabled = !musicEnabled;
+                setMusicEnabled(nextEnabled);
+                if (nextEnabled) {
+                  audioRef.current?.setEnabled(true);
+                  audioRef.current?.startMusic();
+                } else {
+                  audioRef.current?.stopMusic();
+                }
+              }}
+              className="min-h-14 rounded-xl border-3 border-[var(--color-primary)] px-4 font-bold text-[var(--color-primary)]"
+            >
+              {musicEnabled ? "Silenciar música" : "Activar música suave"}
             </button>
             <button
               type="button"

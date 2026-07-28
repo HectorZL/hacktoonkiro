@@ -126,6 +126,52 @@ textarea:focus-visible {
   color: var(--color-text);
 }
 
+.celebration-pop {
+  display: flex;
+  justify-content: center;
+  min-height: 5.5rem;
+  animation: celebration-pop 700ms ease-out both;
+}
+
+.celebration-icons {
+  display: inline-block;
+  font-size: clamp(3.5rem, 9vw, 5.5rem);
+  letter-spacing: 0.12em;
+  line-height: 1;
+  animation: celebration-float 1.8s ease-in-out infinite;
+}
+
+@keyframes celebration-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.65) rotate(-5deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.08) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes celebration-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-0.35rem) rotate(2deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebration-pop,
+  .celebration-icons {
+    animation: none;
+  }
+}
 @media (min-width: 900px) and (max-width: 1400px) {
   body {
     font-size: 1.15rem;
