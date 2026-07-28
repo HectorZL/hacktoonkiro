@@ -1,196 +1,131 @@
-# Hacktoon Kiro
+# Plataforma de juegos accesibles
 
-Plataforma web de juegos accesibles para personas adultas mayores de 70–80 años, incluyendo usuarios con movilidad muy reducida. El proyecto prioriza una interacción simple, pausada y no clínica, con soporte para computadora, móvil/tablet y cámara opcional.
+Aplicación web en español para actividades recreativas de personas mayores, pensada para usarse con el acompañamiento de una persona cuidadora y, cuando corresponde, en un dispositivo compartido.
 
-## Qué vamos a hacer
+La plataforma prioriza botones grandes, instrucciones claras, interacción pausada y alternativas visuales para audio y animación. Es una herramienta de entretenimiento y actividad: **no realiza diagnósticos ni sustituye la atención profesional**.
 
-Construiremos una plataforma de juegos accesibles que permita:
+## Funcionalidades implementadas
 
-- Jugar con una sola entrada: barra espaciadora, un toque o una mano opcional.
-- Usar el sistema en computadoras, móviles y tablets.
-- Compartir un dispositivo mediante perfiles seleccionables por nombre y avatar.
-- Permitir que un cuidador cree y gestione los perfiles.
-- Ofrecer juegos sin combinaciones de teclas, arrastre, doble toque obligatorio, movimientos rápidos ni precisión fina.
-- Incluir pausa, reanudación, reinicio y práctica sin penalización.
-- Proporcionar instrucciones breves, visuales y repetibles.
-- Mantener el audio como opción complementaria, siempre con una alternativa visual.
-- Registrar únicamente datos mínimos de actividad: nombre, sesiones, juegos utilizados y tiempo de juego.
-- Mostrar al cuidador información de actividad, nunca diagnósticos ni conclusiones médicas.
+### Perfiles y cuidador
 
-La cámara será opcional. Cuando se active, MediaPipe se ejecutará en el cliente y no se almacenará ni enviará video al servidor.
+- Registro e inicio de sesión de cuidadores con Supabase cuando está configurado.
+- Perfil del cuidador con nombre, apellido, institución y cierre de sesión.
+- Creación, selección y eliminación de perfiles de jugadores con nombre y avatar.
+- Modo demo sin Supabase: perfiles, preferencias y sesiones se guardan en el navegador.
+- Panel `/cuidador` con actividad reciente, tiempo jugado, juegos usados, resumen por jugador y vistas de 7 o 30 días.
 
-## Qué estamos haciendo ahora
+### Sala de juegos compartidos
 
-La base de accesibilidad, los perfiles, la entrada unificada y el motor de asistencia ya están implementados. Hay tres actividades disponibles: **Carrera de sacos**, **Lanzamiento del trompo** y **El Jardín Virtual**.
+En `/juegos`, el cuidador selecciona al menos dos participantes, configura entre 1 y 20 rondas y define el tiempo de turno (30 a 120 segundos). Están disponibles:
 
-### Ya está implementado
+| Juego | Mecánica |
+| --- | --- |
+| **Trivia de Ecuador** | Preguntas de selección múltiple; cada respuesta correcta suma un punto. Usa preguntas generadas por la API cuando están disponibles y conserva un banco local de respaldo. |
+| **Animales y mímica** | Una persona representa en privado una consigna de animal; el cuidador confirma si el grupo adivinó antes de que termine el tiempo. |
+| **Charadas** | Igual que la dinámica de mímica, con acciones y escenas cotidianas. |
+| **Impostor** | Cada jugador recibe un papel secreto. Las pistas duran un minuto y el grupo vota por una persona al terminar. El equipo gana si descubre al impostor; el impostor gana si llega sin ser descubierto a la última ronda. |
 
-- Proyecto Next.js con TypeScript y App Router.
-- Tailwind CSS configurado mediante PostCSS.
-- ESLint y configuración de compilación.
-- Portada simplificada para personas adultas mayores: tres juegos visibles, botones grandes con la acción “Jugar” y opciones del cuidador separadas.
-- Perfiles locales de demostración y preparación para Supabase con RLS.
-- Entrada unificada por barra espaciadora, toque y mano simulada.
-- Motor de estados con pausa, reanudación, reinicio, asistencia y práctica sin penalización.
-- Carrera de sacos rediseñada como videojuego 2D ilustrado, con fondos parallax, tres corredores, obstáculos, monedas decorativas y música opcional generada localmente.
-- Lanzamiento del trompo con marca móvil, lanzamiento por una acción y ventana amplia.
-- El Jardín Virtual con escenas lentas, cuidado por una acción y sin derrota.
-- Alertas sonoras opcionales en el jardín, con silencio explícito y equivalentes visuales.
-- Registro mínimo de sesiones para juego, jugador, duración, entrada y asistencia.
-- Panel del cuidador en `/cuidador` con actividad reciente, tiempo de juego, juegos realizados, resumen por jugador y tabla accesible.
-- Fallback local cuando Supabase no está configurado, sin datos clínicos, audio ni video.
-- Protección contra repeticiones de una pulsación larga.
-- Feedback visual con `aria-live`.
-- Foco visible para teclado.
-- Tokens visuales para fondo cálido, contraste, estados, bordes y foco.
-- Soporte para `prefers-reduced-motion` y zoom del navegador.
-- Texto que deja claro que el producto es no clínico.
-- Repositorio Git inicializado y publicado en GitHub.
+Las partidas compartidas incluyen marcador, efectos de sonido, música suave y lectura de resultados opcionales. Sus resultados se conservan localmente y se guardan en Supabase para perfiles autenticados compatibles.
 
-### Validaciones realizadas
+### Actividades individuales
 
-- `npm install`
-- `npm run lint`
-- `npm run build`
-- Smoke test HTTP de la página inicial y de las tres actividades.
-- Verificación de que `node_modules` y `.next` no se incluyan en Git.
-- Task 13 base implementada: skip link global, gating de `Space` por estado activo, soporte responsive, foco visible y preferencias de movimiento/contraste.
-- Task 14: protocolo documentado, con matriz técnica, pruebas con personas mayores, privacidad y fuentes oficiales ecuatorianas en [`docs/accessibility-validation.md`](./docs/accessibility-validation.md).
+Estas rutas se pueden abrir directamente:
 
-Las validaciones automatizadas de este bloque pasaron el 20 de julio de 2026 en Windows/PowerShell: `git diff --check`, `npm run lint`, `npm run build` y smoke HTTP de ocho rutas. axe `4.12.1` no encontró violaciones en las ocho rutas y Lighthouse `13.4.1` obtuvo 100/100 de accesibilidad en desktop y configuración móvil predeterminada. Las pruebas con dispositivos reales, la revisión manual con lector de pantalla, las pruebas con personas de 70–80 años y la revisión jurídica profesional siguen pendientes; no se afirma conformidad total ni legal.
+- `/juegos/carrera-sacos`: carrera con salto por una acción, asistencia de ritmo y sin penalización por fallar un obstáculo.
+- `/juegos/trompo`: cinco lanzamientos con una ventana amplia de acción y asistencia configurable.
+- `/juegos/jardin-virtual`: actividad relajada para cuidar escenas de plantas, flores y mascotas sin derrota ni puntuación.
+- `/juegos/mente-activa`: cuatro ejercicios de atención, memoria y orientación con retroalimentación amable.
 
-## Plan de implementación
+`/entrada` y `/motor` son pantallas de demostración para la entrada normalizada y el motor de interacción; no son juegos de la sala principal.
 
-El desarrollo se realizará paso a paso, manteniendo el alcance controlado:
+## Accesibilidad e interacción
 
-1. **Proyecto base y sistema visual accesible** — completado.
-2. **Perfiles y Supabase** — autenticación del cuidador, jugadores y selección en dispositivos compartidos.
-3. **Entrada unificada** — teclado, toque y mano como eventos lógicos independientes.
-4. **Motor de acciones y asistencia** — estados, pausas, ritmo configurable y errores sin penalización.
-5. **Carrera de sacos** — avance automático, salto por una acción y ventana amplia.
-6. **Lanzamiento del trompo** — lanzamiento por una acción con ventana amplia y práctica sin penalización.
-7. **Director de Orquesta** — secuencias musicales con feedback visual y sonoro opcional.
-8. **El Jardín Virtual** — completado: experiencia relajante sin puntuación ni derrota.
-9. **Audio opcional** — música, efectos y narración con equivalentes visuales.
-10. **Sesiones y datos mínimos** — base implementada: registro al finalizar la actividad con fallback local y RLS preparado para Supabase.
-11. **Panel de cuidador** — completado: actividad reciente, tiempo de juego, juegos realizados, resumen por jugador, períodos de 7/30 días y tablas accesibles.
-12. **Alertas no clínicas** — saltado por decisión de alcance; no se implementa en este ciclo.
-13. **Accesibilidad multiplataforma** — base implementada: responsive, skip link, foco visible, gating de `Space`, zoom, preferencias de movimiento/contraste y protocolo reproducible; faltan pruebas reales en dispositivos.
-14. **Validación con usuarios y revisión legal** — protocolo documentado con métricas, privacidad y fuentes oficiales; faltan pruebas con personas de 70–80 años y revisión jurídica profesional.
-15. **Optimización para planes gratuitos** — Vercel Free, Supabase Free y procesamiento local de cámara.
+- Navegación por teclado, controles táctiles y botones de gran tamaño.
+- Barra espaciadora para la acción principal cuando el foco no está en un control interactivo; `Escape` pausa las actividades que lo admiten.
+- Pausa, repetición de instrucciones y mensajes con `aria-live`.
+- Foco visible, diseño responsive y compatibilidad con `prefers-reduced-motion`.
+- Efectos de sonido, música y voz opcionales con información visual equivalente.
+- En **Mente Activa**, el control por cámara/gestos es opcional, requiere consentimiento y procesa la imagen localmente en el dispositivo. No se almacenan ni envían imágenes de la cámara al servidor.
 
-El desglose detallado de cada etapa está en [`TASK.md`](./TASK.md).
+## Tecnología
 
-## Arquitectura prevista
+- Next.js 16 con App Router, React y TypeScript.
+- Tailwind CSS 4.
+- Supabase para autenticación y almacenamiento opcionales.
+- MediaPipe Tasks Vision para la cámara y gestos opcionales de Mente Activa.
+- API de Gemini opcional para generar preguntas de Trivia, con preguntas locales de respaldo.
 
-```mermaid
-flowchart TD
-    UI[Next.js UI accesible] --> INPUT[Input unificado]
-    INPUT --> KEY[Barra espaciadora]
-    INPUT --> TOUCH[Toque único]
-    INPUT --> HAND[MediaPipe opcional]
-    INPUT --> GAMES[Motor de juegos]
+## Inicio rápido
 
-    GAMES --> AUDIO[Audio opcional + feedback visual]
-    GAMES --> SESSION[Registro de sesión]
-    SESSION --> SUPABASE[(Supabase PostgreSQL)]
+### Requisitos
 
-    CAREGIVER[Cuidador] --> PROFILES[Perfiles]
-    PROFILES --> SUPABASE
+- Node.js compatible con Next.js 16.
+- npm.
 
-    SUPABASE --> DASH[Panel de actividad]
-    SUPABASE --> REPORTS[Reportes simples]
-```
-
-### Tecnologías
-
-- **Frontend:** Next.js, React, TypeScript y Tailwind CSS.
-- **Aplicación:** App Router.
-- **Base de datos y autenticación:** Supabase.
-- **Despliegue:** Vercel Free.
-- **Cámara opcional:** MediaPipe ejecutado localmente en el navegador.
-- **Assets:** carpeta `public/` y CDN de Vercel.
-- **Reportes:** datos agregados y PDFs generados del lado del cliente, si se mantienen.
-
-## Accesibilidad y privacidad
-
-La plataforma se diseñará tomando como referencia WCAG 2.2, WAI-AGE, Game Accessibility Guidelines, Ability-Based Design e ISO 9241-171.
-
-Principios principales:
-
-- Objetivos táctiles preferidos de al menos 44 × 44 CSS px.
-- Contraste, foco visible, semántica HTML y navegación por teclado.
-- No depender exclusivamente de color, audio o animación.
-- Animaciones lentas, pausables y compatibles con reducción de movimiento.
-- Tiempos, velocidades y tamaños configurables y validados con usuarios reales.
-- No almacenar video, imágenes de cámara ni datos biométricos derivados.
-- No recopilar ni mostrar diagnósticos, deterioro o rendimiento médico.
-- Revisar la normativa ecuatoriana aplicable usando fuentes oficiales antes de presentar el sistema como producto.
-
-## Resultado esperado
-
-Al finalizar el MVP, un cuidador podrá crear perfiles y varios jugadores podrán compartir un dispositivo. Cada jugador podrá seleccionar su nombre o avatar y completar cuatro juegos usando únicamente la barra espaciadora en computadora o un toque en móvil/tablet.
-
-El MVP final deberá ofrecer:
-
-- Cuatro juegos accesibles con una sola pulsación.
-- Cámara opcional y procesamiento local.
-- Audio opcional con equivalente visual para cada evento.
-- Pausa, reanudación, reinicio y práctica sin penalizaciones.
-- Sesiones, juegos y tiempo de juego registrados con datos mínimos.
-- Panel de actividad para el cuidador con lenguaje no clínico.
-- Pruebas de accesibilidad automatizadas, manuales y con personas de 70–80 años.
-- Verificación de la normativa ecuatoriana aplicable.
-- Despliegue funcional dentro del consumo esperado de Vercel Free y Supabase Free.
-
-## Alcance y límites
-
-Este proyecto es una plataforma de entretenimiento y actividad accesible. **No es un dispositivo médico, no realiza diagnósticos y no sustituye la evaluación de profesionales de la salud.**
-
-Los valores de tiempo de reacción, velocidad de escaneo, precisión de MediaPipe, tamaño de hitboxes y frecuencia sonora no se considerarán universales: serán configurables y se validarán con usuarios reales.
-
-## Desarrollo local
-
-Instala las dependencias y ejecuta el servidor de desarrollo:
+### Instalación y desarrollo
 
 ```powershell
 npm install
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000) en el navegador.
+Abre [http://localhost:3000](http://localhost:3000).
 
-Comandos de validación:
+En modo demo no se requieren variables de entorno: se puede acceder a `/juegos` y `/perfiles` para probar la aplicación con datos locales.
+
+### Validación y producción
 
 ```powershell
 npm run lint
 npm run build
+npm run start
 ```
 
-### Acceso de prueba seguro
+`npm run start` debe ejecutarse después de generar el build con `npm run build`.
 
-Para evaluar la aplicación no se incluyen correos ni contraseñas en el repositorio:
+## Configuración opcional de Supabase y Gemini
 
-**Opción 1: Modo Demo (sin configuración)**
-- No requiere configuración de Supabase.
-- Los perfiles se guardan localmente en el navegador.
-- Accede directamente a `/juegos` o `/perfiles`.
+Copia `.env.example` a `.env.local` y completa únicamente los valores que utilizarás:
 
-**Opción 2: Con Supabase (recomendado para producción)**
-1. Configura `.env.local` a partir de `.env.example`; nunca subas ese archivo.
-2. Crea un usuario de evaluación desde Supabase Dashboard → Authentication → Users, usando un correo y una contraseña que solo conozca el equipo evaluador.
-3. En `/login`, inicia sesión con esas credenciales. La pantalla de Juegos será la entrada predeterminada después del acceso.
-4. Para Vercel, configura las variables en Project Settings → Environment Variables y crea el usuario directamente en el proyecto Supabase de evaluación.
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxxxxxxxxxxxxxx
 
-Consulta [docs/deployment-checklist.md](./docs/deployment-checklist.md) para la verificación de producción. **No copies credenciales reales en README, commits, tickets ni capturas.**
+# Opcional: generación de preguntas de Trivia desde el servidor.
+GEMINI_API_KEY=tu_clave_de_gemini
+GEMINI_MODEL=gemini-3.5-flash-lite
+```
 
-**Flujo completo de prueba:**
-1. Ve a `/login` y crea una cuenta o inicia sesión
-2. Ve a `/perfiles` para añadir jugadores (María, José, Elena, etc.)
-3. Ve a `/juegos` para seleccionar participantes y comenzar una partida
-4. Elige un juego (Trivia, Animales, Impostor o Charadas)
-5. Configura rondas y comienza
+- Sin Supabase, la aplicación funciona en modo demo y guarda los datos en `localStorage`.
+- Sin Gemini, Trivia sigue funcionando con el banco local de preguntas.
+- No incluyas `.env.local`, claves, contraseñas ni datos personales en el repositorio.
+- Para preparar las tablas, políticas RLS y autenticación de Supabase, consulta [`docs/supabase-setup-guide.md`](./docs/supabase-setup-guide.md).
+
+## Rutas principales
+
+| Ruta | Uso |
+| --- | --- |
+| `/` | Entrada de la aplicación; redirige a Juegos en modo demo o a Login cuando se requiere sesión. |
+| `/login` | Inicio de sesión y creación de cuenta del cuidador. |
+| `/perfil` | Datos y cierre de sesión del cuidador. |
+| `/perfiles` | Gestión de jugadores. |
+| `/juegos` | Preparación de partidas compartidas. |
+| `/cuidador` | Actividad y resumen de sesiones. |
+
+## Documentación adicional
+
+- [`docs/supabase-setup-guide.md`](./docs/supabase-setup-guide.md): configuración de autenticación, tablas y RLS.
+- [`docs/testing-checklist.md`](./docs/testing-checklist.md): lista de comprobación funcional.
+- [`docs/accessibility-validation.md`](./docs/accessibility-validation.md): protocolo de accesibilidad.
+- [`docs/deployment-checklist.md`](./docs/deployment-checklist.md): preparación para despliegue.
+- [`DEPLOYMENT.md`](./DEPLOYMENT.md): guía general de despliegue.
+
+## Privacidad y límites
+
+La aplicación está diseñada para registrar datos mínimos de uso, como sesiones, juego, duración y modo de entrada. Los datos se mantienen en el navegador en modo demo o asociados a la cuenta del cuidador al usar Supabase.
+
+No se guardan videos, imágenes de cámara, biometría ni diagnósticos. Antes de usarla con datos reales, configura correctamente la autenticación, las políticas RLS y las variables de entorno de tu entorno de despliegue.
 
 ## Repositorio
 
-El proyecto se publica en [github.com/HectorZL/hacktoonkiro](https://github.com/HectorZL/hacktoonkiro).
+[github.com/HectorZL/hacktoonkiro](https://github.com/HectorZL/hacktoonkiro)
